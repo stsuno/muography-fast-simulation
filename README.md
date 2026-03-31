@@ -8,8 +8,17 @@ This software allows to simulate
   3. modeling of various muon detector response and output hit-information in the file,
   4. reconstruction of the muon tracks based on the output file from the detector.
 
-Code requires the ROOT package [2] provided by CERN [3], which is a free-software for academic use.
+Code requires the ROOT package [2] provided by CERN, which is a free-software for academic use.
 Within ROOT framework, it will be enable to see the graphical view of the simulation and to study the statistical analysis. 
+
+
+[1] T. Sato, “Analytical Model for Estimating Terrestrial Cosmic Ray Fluxes Nearly 
+    Anytime and Anywhere in the World: Extension of PARMA/EXPACS”, PLOS ONE, 
+    10(12): e0144679. (2015) 
+
+[2] Rene Brun and Fons Rademakers, ROOT - An Object Oriented Data Analysis Framework,
+    Proceedings AIHENP'96 Workshop, Lausanne, Sep. 1996,
+    Nucl. Inst. & Meth. in Phys. Res. A 389 (1997) 81-86.
 
 
 How to run:
