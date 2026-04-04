@@ -147,7 +147,8 @@ inline bool Muon::Generate() {
     }
   }
   else {
-    if (delta_z > s_epsilon) {
+//    if (delta_z > s_epsilon) {
+    if (TMath::Abs(m_second_reference_z)>s_epsilon) {
       // Check if reference point is inside or outside 2nd. boundary
       bool is_inside = (m_reference_x >= m_boundary2_xmin && m_reference_x <= m_boundary2_xmax &&
           m_reference_y >= m_boundary2_ymin && m_reference_y <= m_boundary2_ymax);
@@ -167,7 +168,8 @@ inline bool Muon::Generate() {
         // Final calculation of theta_max
         theta_min = 0.0;
         theta_max = TMath::ATan2(r_max, delta_z) * TMath::RadToDeg();
-      } else {
+      }
+      else {
         // Case2: Reference point is OUTSIDE
         // Perform intersection checks with all 4 edges and find maximum valid distance
         std::vector<double> valid_radius;
@@ -181,7 +183,9 @@ inline bool Muon::Generate() {
             if (radius > s_epsilon) {
               // Check if intersection point is with in Y-range of detector
               double intersection_y = m_reference_y + radius * sin_phi;
-              if (intersection_y >= m_boundary2_ymin && intersection_y <= m_boundary2_ymax) valid_radius.push_back(radius);
+              if (intersection_y>=m_boundary2_ymin && intersection_y<=m_boundary2_ymax) {
+                valid_radius.push_back(radius);
+              }
             }
           }
         }
@@ -192,7 +196,9 @@ inline bool Muon::Generate() {
             if (radius > s_epsilon) {
               // Check if intersection point is with in X-range of detector
               double intersection_x = m_reference_x + radius * cos_phi;
-              if (intersection_x >= m_boundary2_xmin && intersection_x <= m_boundary2_xmax) valid_radius.push_back(radius);	    
+              if (intersection_x>=m_boundary2_xmin && intersection_x<=m_boundary2_xmax) {
+                valid_radius.push_back(radius);	    
+              }
             }
           }
         }

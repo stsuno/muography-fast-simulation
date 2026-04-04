@@ -67,7 +67,7 @@ inline LineFitter::LineFitter(const std::string& mode)
     bool is_slope = (name == "A" || name == "B");
     m_start_values[name] = 0.0;
     m_step_sizes[name]   = is_slope ? 0.1 : 0.5;
-    m_value_limits[name] = std::make_pair(-1000.0, 1000.0);
+    m_value_limits[name] = std::make_pair(-2000.0, 2000.0);
   }
 }
 
