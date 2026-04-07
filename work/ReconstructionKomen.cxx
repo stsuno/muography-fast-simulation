@@ -138,16 +138,22 @@ int ReconstructionKomen(std::string model="ALL") {
 
   ClusterMaker<SciBar100x100*> cluster_maker(detector);
   cluster_maker.SetClusterModel(ClusterMaker<SciBar100x100*>::Global);
+//  cluster_maker.SetClusterModel(ClusterMaker<SciBar100x100*>::CombinedLocal);
+//  cluster_maker.SetClusterModel(ClusterMaker<SciBar100x100*>::CombinedGlobal);
 
   TrackFinder track_finder(8, 1000000.0);
   track_finder.SetMinimumHits(6);
 
-  std::map<std::string, double> start_values;
-  start_values["A"] = 0.0;
-  start_values["B"] = 0.0;
-  start_values["C"] = detector_position.X();
-  start_values["D"] = detector_position.Y();
-  track_finder.SetStartValues(start_values);
+//  TrackFinder track_finder(4, 1000000.0);
+//  track_finder.SetMinimumHits(3);
+//  track_finder.SetMinimumHits(4);
+
+//  std::map<std::string, double> start_values;
+//  start_values["A"] = 0.0;
+//  start_values["B"] = 0.0;
+//  start_values["C"] = detector_position.X();
+//  start_values["D"] = detector_position.Y();
+//  track_finder.SetStartValues(start_values);
 
   // 6. Event Loop
   int n_events = 0;
@@ -155,7 +161,10 @@ int ReconstructionKomen(std::string model="ALL") {
   std::string line;
 
   // Preliminary count for progress bar
-  while (std::getline(input_dat, line)) n_events++;
+
+  while (std::getline(input_dat, line)) {
+    n_events++;
+  }
   input_dat.clear();
   input_dat.seekg(0, std::ios::beg);
 
@@ -178,7 +187,7 @@ int ReconstructionKomen(std::string model="ALL") {
     std::stringstream data(line);
     int hit_id;
     std::vector<int> hit_ids;
-    while (data >> hit_id) { hit_ids.push_back(hit_id);} 
+    while (data >> hit_id) { hit_ids.push_back(hit_id); } 
 
     // Step A: Clustering (Raw hits -> SpacePoints)
     std::vector<SpacePoint> all_space_points = cluster_maker.Execute(hit_ids);
@@ -189,17 +198,30 @@ int ReconstructionKomen(std::string model="ALL") {
     // Step A': Shift the space point to the reference point
     std::vector<SpacePoint> space_points;
     for (const auto& space_point : all_space_points) {
-      space_points.push_back(SpacePoint(space_point.X()-detector_position.X(),
-                                        space_point.Y()-detector_position.Y(),
-                                        space_point.Z()-detector_position.Z()));
+      SpacePoint sp(space_point.X()-detector_position.X(),
+                    space_point.Y()-detector_position.Y(),
+                    space_point.Z()-detector_position.Z());
+      sp.SetErrorX(space_point.GetErrorX());
+      sp.SetErrorY(space_point.GetErrorY());
+      sp.SetErrorZ(space_point.GetErrorZ());
+      sp.SetUnitIndex(space_point.GetUnitIndex());
+
+      space_points.push_back(sp);
+
+//      std::cout << sp.X() << " " << sp.Y() << " " << sp.Z() << " " 
+//                << sp.GetErrorX() << " " << sp.GetErrorY() << " " << sp.GetErrorZ() << " " 
+//                << space_point.GetUnitIndex() << std::endl;
+
+
     }
 
     // Step B: Track Finding (Combinatorial Search and Fitting)
-    track_finder.GetLineFit().SetFittingParameters(&start_values, nullptr, nullptr);
     Track best_track = track_finder.GetBestTrack(space_points);
+//    Track best_track = track_finder.GetBestTrack(all_space_points);
 
     // Step C: Recording (Fill TTree if a valid track was found)
     if (best_track.IsValid()) {
+
       m_num_hits      = best_track.GetNumHits();
       m_chisq         = best_track.GetChiSquare();
       m_ndf           = best_track.GetNDF();

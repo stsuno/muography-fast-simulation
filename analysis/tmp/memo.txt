@@ -1,0 +1,4 @@
+How to create dictionary file.
+
+rootcint -f MyClassDict.cxx -c makeEventTree2.h LinkDef.h
+
