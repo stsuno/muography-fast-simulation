@@ -79,7 +79,6 @@ inline void TrackFinder::ExecuteSearch(const std::vector<std::vector<SpacePoint>
     for (const auto& space_point : current_combination) {
       m_line_fitter.AddSpacePoint(space_point);
     }
-
     FitResult result = m_line_fitter.ExecuteFit();
 
     if (g_debug_level>0) {

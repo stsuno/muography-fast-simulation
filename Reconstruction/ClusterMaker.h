@@ -16,29 +16,22 @@ class ClusterMaker {
     ClusterMaker(VariousDetector detector):m_detector(detector),m_model(CombinedLocal) {}
     virtual ~ClusterMaker() {}
 
-    enum ClusterModel{Global,CombinedLocal,GlobalAndTime};
+    enum ClusterModel{Global,CombinedLocal,CombinedGlobal,GlobalAndTime};
 
     void SetClusterModel(ClusterMaker::ClusterModel model) { m_model=model; }
 
     // Processes a list of raw hit IDs and returns a collection of SpacePoints.
     std::vector<SpacePoint> Execute(const std::vector<int>& hit_ids) const {
       if (hit_ids.empty()) return {};
-
-      if (m_model==Global) {
-        return SetGlobal(hit_ids);
-      }
-      else if (m_model==CombinedLocal) {
-        return SetCombinedLocal(hit_ids);
-      }
+      if      (m_model==Global)         { return SetGlobal(hit_ids); }
+      else if (m_model==CombinedGlobal) { return SetCombinedGlobal(hit_ids); }
+      else if (m_model==CombinedLocal)  { return SetCombinedLocal(hit_ids); }
       return {};
     }
 
     std::vector<SpacePoint> Execute(const std::vector<std::pair<int,double>>& hit_ids) const {
       if (hit_ids.empty()) return {};
-
-      if (m_model==GlobalAndTime) {
-        return SetGlobalAndTime(hit_ids);
-      }
+      if (m_model==GlobalAndTime) { return SetGlobalAndTime(hit_ids); }
       return {};
     }
 
@@ -69,6 +62,27 @@ class ClusterMaker {
           // TODO: Implement ghost rejection logic
           space_points.push_back(space_point);
         }
+      }
+      return space_points;
+    }
+
+    std::vector<SpacePoint> SetCombinedGlobal(const std::vector<int>& hit_ids) const {
+      std::vector<SpacePoint> space_points;
+      std::vector<SpacePoint> sp = SetGlobal(hit_ids);
+      int nlayer = m_detector->GetNumLayers();
+      for (int i=0; i<nlayer; i++) {
+        const auto& xcl = sp[2*i];    // Even: X layer
+        const auto& ycl = sp[2*i+1];  //  Odd: Y layer
+
+        SpacePoint space_point(xcl.X(), ycl.Y(), xcl.Z());
+        space_point.SetUnitIndex(i);
+        space_point.SetErrorX(xcl.GetErrorX());
+        space_point.SetErrorY(ycl.GetErrorY());
+        space_point.SetErrorZ(xcl.GetErrorZ());
+//        space_point.SetErrorZ(0.1);
+
+        // TODO: Implement ghost rejection logic
+        space_points.push_back(space_point);
       }
       return space_points;
     }
@@ -141,8 +155,6 @@ class ClusterMaker {
 
     std::vector<SpacePoint> SetGlobalAndTime(const std::vector<std::pair<int,double>>& hit_ids) const {
       std::vector<SpacePoint> space_points;
-
-//      std::cout << "START " << hit_ids.size() << std::endl;
 
       std::vector<std::pair<TVector3,TVector3>> points;
       for (const auto& hit : hit_ids) {

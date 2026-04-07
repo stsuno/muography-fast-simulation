@@ -25,6 +25,12 @@ target_link_libraries(SimulationFiberDetector MuographyLib)
 add_executable(ReconstructionFiberDetector work/ReconstructionFiberDetector.cxx)
 target_link_libraries(ReconstructionFiberDetector MuographyLib)
 
+add_executable(SimulationKomen work/SimulationKomen.cxx)
+target_link_libraries(SimulationKomen MuographyLib)
+
+add_executable(ReconstructionKomen work/ReconstructionKomen.cxx)
+target_link_libraries(ReconstructionKomen MuographyLib)
+
 add_custom_target(tidy
     COMMAND rm -f ${CMAKE_CURRENT_SOURCE_DIR}/*~
     COMMAND rm -f ${CMAKE_CURRENT_SOURCE_DIR}/*/*~
