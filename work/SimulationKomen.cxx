@@ -22,12 +22,17 @@ R__ADD_INCLUDE_PATH(.);
 #include "Simulation/Pipe.h"
 #include "Simulation/House.h"
 #include "Simulation/SciBar100x100.h"
+#include "Geometry/Mountain.h"
 
 #ifndef G_DEBUG_LEVEL
 #define G_DEBUG_LEVEL
 int g_debug_level = 0;
 int g_log_level   = kInfo;
 #endif
+
+//root [0]  gSystem->AddIncludePath("-I${PWD}/../")
+//root [1] .L SimulationKomen.cxx+
+//root [2] SimulationKomen()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -80,11 +85,19 @@ int SimulationKomen(std::string model="ALL") {
   }
 
   // 3. Setup Geometry
-  RectangularPrism* ground = new RectangularPrism(1000.0, 0.0, 0.5*geometry_rangez, 
-                                                  geometry_rangexy, geometry_rangexy, geometry_rangez);
-  ground -> SetLineColor(791);
-  ground -> SetFillColor(791);
-  ground -> SetDensity(GetDensity("NormalSoil"));
+  // RectangularPrism* ground = new RectangularPrism(1000.0, 0.0, 0.5*geometry_rangez, 
+  //                                                 geometry_rangexy, geometry_rangexy, geometry_rangez);
+  // ground -> SetLineColor(791);
+  // ground -> SetFillColor(791);
+  // ground -> SetDensity(GetDensity("NormalSoil"));
+
+  Mountain* mountain = new Mountain();
+  mountain->SetReference(31.95, 130.32, 0.0);
+  mountain->SetGeometry("../Geometry/Hokusatsu_elevation.dat");
+  std::cout << "Geometry loaded" << std::endl;
+  
+
+  
 
   SciBar100x100* detA = new SciBar100x100(0.0,0.0,0.0);
   detA -> MoveXYZ(detA_position.X(),detA_position.Y(),detA_position.Z());
@@ -109,10 +122,10 @@ int SimulationKomen(std::string model="ALL") {
   MWPC   -> SetPriority(1);
   detB   -> SetPriority(2);
   detA   -> SetPriority(3);
-  ground -> SetPriority(4);
+  // ground -> SetPriority(4);
   std::vector<Shape*> shapes;
 
-  shapes.push_back(ground);
+ // shapes.push_back(ground);
   shapes.push_back(MWPC);
   shapes.push_back(detB);
   shapes.push_back(detA);
@@ -141,14 +154,30 @@ int SimulationKomen(std::string model="ALL") {
   //==============================================================================
   // Simulate detector A
   //==============================================================================
-  if (model=="ALL" || model=="SingleA") {
-    std::string outputA_path = output_dir + "/" + datafileA;
-    std::ofstream outputA_dat(outputA_path);
-    if (!outputA_dat.is_open()) {
-      SysError("Simulation::Initialize", "Could not open output file: %s", datafileA.c_str());
-      gSystem->Exit(EXIT_FAILURE);
+  std::string outputA_path = output_dir + "/" + datafileA; 
+  std::ofstream outputA_dat(outputA_path); 
+
+  if (model=="ALL" || model=="SingleA") { 
+    if (!outputA_dat.is_open()) { 
+        SysError("Simulation::Initialize", "Could not open output file: %s", datafileA.c_str()); 
+        gSystem->Exit(EXIT_FAILURE); 
     }
 
+    for (int i = 0; i < n_events; ++i) {
+        Muon* mu = new Muon(reader, 12345);
+        while (!mu->Generate()); // ミューオン生成
+        auto hits = detA->IsHitList(*mu);
+        if (!hits.empty()) {
+          for (int id : hits) {
+          outputA_dat << id << " ";
+       }
+       outputA_dat << "\n";
+      }
+      
+    }
+    outputA_dat.close();
+  }
+    
     Muon* muonA = new Muon(reader, 123456);
     muonA->SetReferenceZ(detA_position.Z()+15.0);
     muonA->SetEndZ(-500.0);
@@ -162,7 +191,7 @@ int SimulationKomen(std::string model="ALL") {
     n_below_threshold = 0;
     i_draw = 0;
     for (int i = 0; i < n_events; ++i) {
-      if (i%(n_events/10)==0) { 
+      if (i%(n_events/1000)==0) {         
         Info("Simulation::EventLoop", "Progress: %*d / %d processed", n, i, n_events); 
       }
 
@@ -214,18 +243,30 @@ int SimulationKomen(std::string model="ALL") {
     // 7. Finalize
     outputA_dat.close();
     Info("Simulation::Finalize", "Output File: %s", outputA_path.c_str());
-  }
 
   //==============================================================================
   // Simulate detector B
   //==============================================================================
-  if (model=="ALL" || model=="SingleB") {
-    std::string outputB_path = output_dir + "/" + datafileB;
-    std::ofstream outputB_dat(outputB_path);
-    if (!outputB_dat.is_open()) {
-      SysError("Simulation::Initialize", "Could not open output file: %s", datafileB.c_str());
-      gSystem->Exit(EXIT_FAILURE);
+  std::string outputB_path = output_dir + "/" + datafileB; 
+  std::ofstream outputB_dat(outputB_path); 
+  if (model=="ALL" || model=="SingleB") { 
+    if (!outputB_dat.is_open()) { 
+        SysError("Simulation::Initialize", "Could not open output file: %s", datafileB.c_str()); 
+        gSystem->Exit(EXIT_FAILURE); 
     }
+    for (int i = 0; i < n_events; ++i) {
+        Muon* mu = new Muon(reader,12345);
+        while (!mu->Generate());
+        auto hits = detA->IsHitList(*mu);
+        if (!hits.empty()) {
+          for (int id : hits) {
+              outputA_dat << id << " ";
+          }
+        outputA_dat << "\n";
+        }
+    }
+    outputB_dat.close();
+  }
 
     Muon* muonB = new Muon(reader, 7645311);
     muonB->SetReferenceZ(detB_position.Z()+15.0);
@@ -291,18 +332,30 @@ int SimulationKomen(std::string model="ALL") {
     // 7. Finalize
     outputB_dat.close();
     Info("Simulation::Finalize", "Output File: %s", outputB_path.c_str());
-  }
 
   //==============================================================================
   // Simulate detector MWPC
   //==============================================================================
-  if (model=="ALL" || model=="SingleMWPC") {
-    std::string outputM_path = output_dir + "/" + datafileM;
-    std::ofstream outputM_dat(outputM_path);
-    if (!outputM_dat.is_open()) {
-      SysError("Simulation::Initialize", "Could not open output file: %s", datafileM.c_str());
-      gSystem->Exit(EXIT_FAILURE);
+  std::string outputM_path = output_dir + "/" + datafileM; 
+  std::ofstream outputM_dat(outputM_path); 
+  if (model=="ALL" || model=="SingleMWPC") { 
+    if (!outputM_dat.is_open()) { 
+        SysError("Simulation::Initialize", "Could not open output file: %s", datafileM.c_str()); 
+        gSystem->Exit(EXIT_FAILURE); 
     }
+    for (int i = 0; i < n_events; ++i) {
+        Muon* mu = new Muon(reader, 12345);
+        while (!mu->Generate());
+        auto hits = detA->IsHitList(*mu);
+        if (!hits.empty()) {
+          for (int id : hits) {
+            outputA_dat << id << " ";
+          }
+          outputA_dat << "\n";
+        }
+    }
+    outputM_dat.close();
+  }
 
     Muon* muonM = new Muon(reader, 54738291);
     muonM->SetReferenceZ(MWPC_position.Z()+15.0);
@@ -356,18 +409,31 @@ int SimulationKomen(std::string model="ALL") {
     // 7. Finalize
     outputM_dat.close();
     Info("Simulation::Finalize", "Output File: %s", outputM_path.c_str());
-  }
+  
 
   //==============================================================================
   // Simulate simultaneous hits in MWPC and detector B
   //==============================================================================
-  if (model=="ALL" || model=="DoubleMB") {
-    std::string outputMB_M_path = output_dir + "/" + datafileMB_M;
-    std::ofstream outputMB_M_dat(outputMB_M_path);
-    if (!outputMB_M_dat.is_open()) {
-      SysError("Simulation::Initialize", "Could not open output file: %s", datafileMB_M.c_str());
-      gSystem->Exit(EXIT_FAILURE);
+  std::string outputMB_M_path = output_dir + "/" + datafileMB_M; 
+  std::ofstream outputMB_M_dat(outputMB_M_path); 
+  if (model=="ALL" || model=="DoubleMB") { 
+    if (!outputMB_M_dat.is_open()) { 
+        SysError("Simulation::Initialize", "Could not open output file: %s", datafileMB_M.c_str()); 
+        gSystem->Exit(EXIT_FAILURE); 
     }
+    for (int i = 0; i < n_events; ++i) {
+        Muon* mu = new Muon(reader, 12345);
+        while (!mu->Generate());
+        auto hits = MWPC->IsHitList(*mu);
+        if (!hits.empty()) {
+          for (int id : hits) {
+          outputMB_M_dat << id << " ";
+        }
+        outputMB_M_dat << "\n";
+      }
+    }
+    outputMB_M_dat.close();
+  }
 
     std::string outputMB_B_path = output_dir + "/" + datafileMB_B;
     std::ofstream outputMB_B_dat(outputMB_B_path);
@@ -458,18 +524,33 @@ int SimulationKomen(std::string model="ALL") {
 
     outputMB_B_dat.close();
     Info("Simulation::Finalize", "Output File: %s", outputMB_B_path.c_str());
-  }
+  
 
   //==============================================================================
   // Simulate simultaneous hits in MWPC and detector A
   //==============================================================================
-  if (model=="ALL" || model=="DoubleMA") {
-    std::string outputMA_M_path = output_dir + "/" + datafileMA_M;
-    std::ofstream outputMA_M_dat(outputMA_M_path);
-    if (!outputMA_M_dat.is_open()) {
-      SysError("Simulation::Initialize", "Could not open output file: %s", datafileMA_M.c_str());
-      gSystem->Exit(EXIT_FAILURE);
+  std::string outputMA_M_path = output_dir + "/" + datafileMA_M; 
+  std::ofstream outputMA_M_dat(outputMA_M_path);
+  if (model=="ALL" || model=="DoubleMA") {  
+    if (!outputMA_M_dat.is_open()) { 
+        SysError("Simulation::Initialize", "Could not open output file: %s", datafileMA_M.c_str()); 
+        gSystem->Exit(EXIT_FAILURE); 
     }
+    for (int i = 0; i < n_events; ++i) {
+        Muon* mu = new Muon(reader, 12345);
+        while (!mu->Generate());
+        auto hitsM = MWPC->IsHitList(*mu);
+        auto hitsA = detA->IsHitList(*mu);
+
+        if (!hitsM.empty() && !hitsA.empty()) {
+          for (int id : hitsM) {
+          outputMA_M_dat << id << " ";
+        }
+      outputMA_M_dat << "\n";
+      }
+    }
+    outputMA_M_dat.close();
+  }
 
     std::string outputMA_A_path = output_dir + "/" + datafileMA_A;
     std::ofstream outputMA_A_dat(outputMA_A_path);
@@ -563,15 +644,17 @@ int SimulationKomen(std::string model="ALL") {
 
     outputMA_A_dat.close();
     Info("Simulation::Finalize", "Output File: %s", outputMA_A_path.c_str());
-  }
+
   //==============================================================================
 
   // 8. Visualize
   int irep;
   TCanvas* canvas = new TCanvas("canvas", "Simulation", 0, 0, 800, 800);
   TView* view = TView::CreateView();
-  view->SetRange(-2000.0, -2000.0, 0.0, 2000.0, 2000.0, 3000.0);
+  view->SetRange(-20000.0, -20000.0, 0.0, 20000.0, 20000.0, 30000.0);
   view->SetView(800.0, 800.0, 0.0, irep);
+  mountain -> DrawWithMap();
+  
 
   for (auto shape : shapes) shape->Draw("f");
   if (model=="ALL" || model=="SingleA") {
