@@ -30,11 +30,26 @@ int g_debug_level = 0;
 int g_log_level   = kInfo;
 #endif
 
+//git add . → git commit -m "コメント" → git push 
+//git pwd: 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
+// source /home/takumu/root/bin/thisroot.sh
 //root [0]  gSystem->AddIncludePath("-I${PWD}/../")
 //root [1] .L SimulationKomen.cxx+
 //root [2] SimulationKomen()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TVector3 PlaceDetector(Mountain* mountain,
+                       double lat, double lon,
+                       double ref_lat, double ref_lon,
+                       double z_offset) {
+    double x, y;
+    mountain->reverse_explore(lat, lon, &x, &y, ref_lat, ref_lon);
+
+    double z = mountain->Interpolate(x, y);
+
+    return TVector3(x, y, z + z_offset);
+}
 
 int SimulationKomen(std::string model="ALL") {
   // 1. Load Configuration
@@ -74,9 +89,9 @@ int SimulationKomen(std::string model="ALL") {
   double weight = 0.01;
   n_events *= weight;
 
-  TVector3 detA_position(0.0,0.0,0.0);
-  TVector3 detB_position(2000.0,0.0,0.0);
-  TVector3 MWPC_position(2000.0,0.0,2000.0);
+  // TVector3 detA_position(0.0,0.0,0.0);
+  // TVector3 detB_position(2000.0,0.0,0.0);
+  // TVector3 MWPC_position(2000.0,0.0,2000.0);
 
   // 2. Setup Output
   if (gSystem->AccessPathName(output_dir.c_str())) {
@@ -95,6 +110,29 @@ int SimulationKomen(std::string model="ALL") {
   mountain->SetReference(31.95, 130.32, 0.0);
   mountain->SetGeometry("../Geometry/Hokusatsu_elevation.dat");
   std::cout << "Geometry loaded" << std::endl;
+
+  double ref_lat = 31.9535;
+  double ref_lon = 130.3241;
+
+mountain->SetReference(ref_lat, ref_lon, 0.0);
+
+  // A（地中）
+  TVector3 detA_position = PlaceDetector(
+      mountain, 31.9535, 130.3241, ref_lat, ref_lon, -50.0);
+
+  // B（少しズラす）
+  TVector3 detB_position = PlaceDetector(
+      mountain, 31.9535, 130.3241, ref_lat, ref_lon, -50.0);
+
+  // MWPC（上空）
+  TVector3 MWPC_position = PlaceDetector(
+      mountain, 31.9535, 130.3241, ref_lat, ref_lon, +1000.0);
+
+      double x, y;
+      mountain->reverse_explore(31.954, 130.324, &x, &y, ref_lat, ref_lon);
+
+      std::cout << "x=" << x << " y=" << y << std::endl;
+
   
 
   
@@ -165,7 +203,10 @@ int SimulationKomen(std::string model="ALL") {
 
     for (int i = 0; i < n_events; ++i) {
         Muon* mu = new Muon(reader, 12345);
-        while (!mu->Generate()); // ミューオン生成
+        int trial = 0;
+        while (!mu->Generate() && trial < 10000) {
+          trial++;
+        }
         auto hits = detA->IsHitList(*mu);
         if (!hits.empty()) {
           for (int id : hits) {
@@ -195,8 +236,10 @@ int SimulationKomen(std::string model="ALL") {
         Info("Simulation::EventLoop", "Progress: %*d / %d processed", n, i, n_events); 
       }
 
-      while (!muonA->Generate()) {
-        n_generation_failed++;
+      int trial = 0;
+      while (!muonA->Generate() && trial < 10000) {
+          n_generation_failed++;
+          trial++;
       }
 
       auto [initial_energy, loss_energy] = muonA->CalculateEnergyLoss(shapes);
@@ -256,7 +299,10 @@ int SimulationKomen(std::string model="ALL") {
     }
     for (int i = 0; i < n_events; ++i) {
         Muon* mu = new Muon(reader,12345);
-        while (!mu->Generate());
+        int trial = 0;
+        while (!mu->Generate() && trial < 10000) {
+            trial++;
+        }
         auto hits = detA->IsHitList(*mu);
         if (!hits.empty()) {
           for (int id : hits) {
@@ -284,8 +330,10 @@ int SimulationKomen(std::string model="ALL") {
         Info("Simulation::EventLoop", "Progress: %*d / %d processed", n, i, n_events);
       }
 
-      while (!muonB->Generate()) {
-        n_generation_failed++;
+      int trial = 0;
+      while (!muonB->Generate() && trial < 10000) {
+          n_generation_failed++;
+          trial++;
       }
 
       auto [initial_energy, loss_energy] = muonB->CalculateEnergyLoss(shapes);
@@ -345,7 +393,10 @@ int SimulationKomen(std::string model="ALL") {
     }
     for (int i = 0; i < n_events; ++i) {
         Muon* mu = new Muon(reader, 12345);
-        while (!mu->Generate());
+        int trial = 0;
+        while (!mu->Generate() && trial < 10000) {
+            trial++;
+        }
         auto hits = detA->IsHitList(*mu);
         if (!hits.empty()) {
           for (int id : hits) {
@@ -373,9 +424,11 @@ int SimulationKomen(std::string model="ALL") {
         Info("Simulation::EventLoop", "Progress: %*d / %d processed", n, i, n_events);
       }
 
-      while (!muonM->Generate()) {
+    int trial = 0;
+    while (!muonM->Generate() && trial < 10000) {
         n_generation_failed++;
-      }
+        trial++;
+    }
 
       // Store hits in detector
       std::vector<int> all_hit_ids = MWPC->IsHitList(*muonM);
@@ -423,7 +476,10 @@ int SimulationKomen(std::string model="ALL") {
     }
     for (int i = 0; i < n_events; ++i) {
         Muon* mu = new Muon(reader, 12345);
-        while (!mu->Generate());
+        int trial = 0;
+        while (!mu->Generate() && trial < 10000) {
+            trial++;
+        }
         auto hits = MWPC->IsHitList(*mu);
         if (!hits.empty()) {
           for (int id : hits) {
@@ -461,8 +517,10 @@ int SimulationKomen(std::string model="ALL") {
     for (int i = 0; i < n_events; ++i) {
       if (i % (n_events / 10) == 0) Info("Simulation::EventLoop", "Progress: %*d / %d processed", n, i, n_events);
 
-      while (!muonMB->Generate()) {
-        n_generation_failed++;
+      int trial = 0;
+      while (!muonMB->Generate() && trial < 10000) {
+          n_generation_failed++;
+          trial++;
       }
 
       auto [initial_energy, loss_energy] = muonMB->CalculateEnergyLoss(shapes);
@@ -538,7 +596,10 @@ int SimulationKomen(std::string model="ALL") {
     }
     for (int i = 0; i < n_events; ++i) {
         Muon* mu = new Muon(reader, 12345);
-        while (!mu->Generate());
+        int trial = 0;
+        while (!mu->Generate() && trial < 10000) {
+            trial++;
+        }
         auto hitsM = MWPC->IsHitList(*mu);
         auto hitsA = detA->IsHitList(*mu);
 
@@ -581,8 +642,10 @@ int SimulationKomen(std::string model="ALL") {
         Info("Simulation::EventLoop", "Progress: %*d / %d processed", n, i, n_events);
       }
 
-      while (!muonMA->Generate()) {
-        n_generation_failed++;
+      int trial = 0;
+      while (!muonMA->Generate() && trial < 10000) {
+          n_generation_failed++;
+          trial++;
       }
 
       auto [initial_energy, loss_energy] = muonMA->CalculateEnergyLoss(shapes);
