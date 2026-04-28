@@ -105,28 +105,25 @@ int SimulationKomen(std::string model="ALL") {
   // ground -> SetLineColor(791);
   // ground -> SetFillColor(791);
   // ground -> SetDensity(GetDensity("NormalSoil"));
+  double ref_lat = 31.9713;
+  double ref_lon = 130.3420;
 
   Mountain* mountain = new Mountain();
-  mountain->SetReference(31.95, 130.32, 0.0);
+  mountain->SetReference(ref_lat, ref_lon, 0.0);
   mountain->SetGeometry("../Geometry/Hokusatsu_elevation.dat");
   std::cout << "Geometry loaded" << std::endl;
 
-  double ref_lat = 31.9535;
-  double ref_lon = 130.3241;
-
-mountain->SetReference(ref_lat, ref_lon, 0.0);
-
   // A（地中）
   TVector3 detA_position = PlaceDetector(
-      mountain, 31.9535, 130.3241, ref_lat, ref_lon, -50.0);
+      mountain, ref_lat, ref_lon, ref_lat, ref_lon, 250.0);
 
   // B（少しズラす）
   TVector3 detB_position = PlaceDetector(
-      mountain, 31.9535, 130.3241, ref_lat, ref_lon, -50.0);
+      mountain, ref_lat, ref_lon, ref_lat, ref_lon, -50.0);
 
   // MWPC（上空）
   TVector3 MWPC_position = PlaceDetector(
-      mountain, 31.9535, 130.3241, ref_lat, ref_lon, +1000.0);
+      mountain, ref_lat, ref_lon, ref_lat, ref_lon, +1000.0);
 
       double x, y;
       mountain->reverse_explore(31.954, 130.324, &x, &y, ref_lat, ref_lon);
@@ -306,9 +303,9 @@ mountain->SetReference(ref_lat, ref_lon, 0.0);
         auto hits = detA->IsHitList(*mu);
         if (!hits.empty()) {
           for (int id : hits) {
-              outputA_dat << id << " ";
+              outputB_dat << id << " ";
           }
-        outputA_dat << "\n";
+        outputB_dat << "\n";
         }
     }
     outputB_dat.close();
@@ -400,9 +397,9 @@ mountain->SetReference(ref_lat, ref_lon, 0.0);
         auto hits = detA->IsHitList(*mu);
         if (!hits.empty()) {
           for (int id : hits) {
-            outputA_dat << id << " ";
+            outputM_dat << id << " ";
           }
-          outputA_dat << "\n";
+          outputM_dat << "\n";
         }
     }
     outputM_dat.close();
