@@ -34,40 +34,59 @@ int ReconstructionKomen(std::string model="ALL") {
   // Apply Log Level Setting
   gErrorIgnoreLevel = g_log_level;
 
-  std::string output_dir = "data/output/komen";
-
-  std::string datafileA    = "komen_singleA.dat";
-  std::string datafileB    = "komen_singleB.dat";
-  std::string datafileM    = "komen_singleM.dat";
-  std::string datafileMB_M = "komen_doubleMB_M.dat";
-  std::string datafileMB_B = "komen_doubleMB_B.dat";
-  std::string datafileMA_M = "komen_doubleMA_M.dat";
-  std::string datafileMA_A = "komen_doubleMA_A.dat";
-
-  std::string rootfileA    = "komen_singleA.root";
-  std::string rootfileB    = "komen_singleB.root";
-  std::string rootfileM    = "komen_singleM.root";
-  std::string rootfileMB_M = "komen_doubleMB_M.root";
-  std::string rootfileMB_B = "komen_doubleMB_B.root";
-  std::string rootfileMA_M = "komen_doubleMA_M.root";
-  std::string rootfileMA_A = "komen_doubleMA_A.root";
+  std::string output_dir = "data/output/komen_g00pm20p";
+//  std::string output_dir = "data/output/komen_g00pm500p";
+//  std::string output_dir = "data/output/komen_nominal";
 
   std::string pdffile      = "komen.pdf";
 
   TVector3 detA_position(0.0,0.0,0.0);
   TVector3 detB_position(2000.0,0.0,0.0);
-  TVector3 MWPC_position(2000.0,0.0,2000.0);
+  TVector3 detC_position(1000.0,0.0,200.0);
+  TVector3 MWPC_position(2000.0,0.0,2400.0);
 
   // 2. Setup Output
 //  std::string output_path = output_dir + "/" + rootfile;
   std::string output_path = output_dir + "/";
-  if (model=="SingleA")    { output_path+=rootfileA; }
-  if (model=="SingleB")    { output_path+=rootfileB; }
-  if (model=="SingleMWPC") { output_path+=rootfileM; }
-  if (model=="DoubleMB_M") { output_path+=rootfileMB_M; }
-  if (model=="DoubleMB_B") { output_path+=rootfileMB_B; }
-  if (model=="DoubleMA_M") { output_path+=rootfileMA_M; }
-  if (model=="DoubleMA_A") { output_path+=rootfileMA_A; }
+  if (model=="SingleMWPC")  { output_path+="komen_singleM.root"; }
+  if (model=="SingleB")     { output_path+="komen_singleB.root"; }
+  if (model=="SingleC")     { output_path+="komen_singleC.root"; }
+  if (model=="SingleA")     { output_path+="komen_singleA.root"; }
+  if (model=="DoubleM1B_M") { output_path+="komen_doubleM1B_M.root"; }
+  if (model=="DoubleM1B_B") { output_path+="komen_doubleM1B_B.root"; }
+  if (model=="DoubleM2B_M") { output_path+="komen_doubleM2B_M.root"; }
+  if (model=="DoubleM2B_B") { output_path+="komen_doubleM2B_B.root"; }
+  if (model=="DoubleM3B_M") { output_path+="komen_doubleM3B_M.root"; }
+  if (model=="DoubleM3B_B") { output_path+="komen_doubleM3B_B.root"; }
+  if (model=="DoubleM4B_M") { output_path+="komen_doubleM4B_M.root"; }
+  if (model=="DoubleM4B_B") { output_path+="komen_doubleM4B_B.root"; }
+  if (model=="DoubleM5B_M") { output_path+="komen_doubleM5B_M.root"; }
+  if (model=="DoubleM5B_B") { output_path+="komen_doubleM5B_B.root"; }
+  if (model=="DoubleM1C_M") { output_path+="komen_doubleM1C_M.root"; }
+  if (model=="DoubleM1C_C") { output_path+="komen_doubleM1C_C.root"; }
+  if (model=="DoubleM2C_M") { output_path+="komen_doubleM2C_M.root"; }
+  if (model=="DoubleM2C_C") { output_path+="komen_doubleM2C_C.root"; }
+  if (model=="DoubleM3C_M") { output_path+="komen_doubleM3C_M.root"; }
+  if (model=="DoubleM3C_C") { output_path+="komen_doubleM3C_C.root"; }
+  if (model=="DoubleM4C_M") { output_path+="komen_doubleM4C_M.root"; }
+  if (model=="DoubleM4C_C") { output_path+="komen_doubleM4C_C.root"; }
+  if (model=="DoubleM5C_M") { output_path+="komen_doubleM5C_M.root"; }
+  if (model=="DoubleM5C_C") { output_path+="komen_doubleM5C_C.root"; }
+  if (model=="DoubleM1A_M") { output_path+="komen_doubleM1A_M.root"; }
+  if (model=="DoubleM1A_A") { output_path+="komen_doubleM1A_A.root"; }
+  if (model=="DoubleM2A_M") { output_path+="komen_doubleM2A_M.root"; }
+  if (model=="DoubleM2A_A") { output_path+="komen_doubleM2A_A.root"; }
+  if (model=="DoubleM3A_M") { output_path+="komen_doubleM3A_M.root"; }
+  if (model=="DoubleM3A_A") { output_path+="komen_doubleM3A_A.root"; }
+  if (model=="DoubleM4A_M") { output_path+="komen_doubleM4A_M.root"; }
+  if (model=="DoubleM4A_A") { output_path+="komen_doubleM4A_A.root"; }
+  if (model=="DoubleM5A_M") { output_path+="komen_doubleM5A_M.root"; }
+  if (model=="DoubleM5A_A") { output_path+="komen_doubleM5A_A.root"; }
+  if (model=="DoubleBC_B")  { output_path+="komen_doubleBC_B.root"; }
+  if (model=="DoubleBC_C")  { output_path+="komen_doubleBC_C.root"; }
+  if (model=="DoubleCA_C")  { output_path+="komen_doubleCA_C.root"; }
+  if (model=="DoubleCA_A")  { output_path+="komen_doubleCA_A.root"; }
+  if (model=="DoubleBC_BC") { output_path+="komen_doubleBC_BC.root"; }
 
   if (gSystem->AccessPathName(output_dir.c_str())) {
     gSystem->mkdir(output_dir.c_str(), kTRUE);
@@ -77,12 +96,14 @@ int ReconstructionKomen(std::string model="ALL") {
 
   // 3. Define TTree
   TTree* track_tree = new TTree("track_tree", "Reconstructed Tracks");
+  int m_counter;
   double m_A, m_B, m_C, m_D;
   double m_Aerr, m_Berr, m_Cerr, m_Derr;
   double m_chisq, m_reduced_chisq, m_p_value, m_phi, m_theta;
   int m_ndf, m_num_hits;
   std::vector<double>* m_residual_x = new std::vector<double>();
   std::vector<double>* m_residual_y = new std::vector<double>();
+  track_tree->Branch("event_number",  &m_counter,       "event_number/I");
   track_tree->Branch("num_hits",      &m_num_hits,      "num_hits/I");
   track_tree->Branch("chisq",         &m_chisq,         "chisq/D");
   track_tree->Branch("ndf",           &m_ndf,           "ndf/I");
@@ -103,15 +124,46 @@ int ReconstructionKomen(std::string model="ALL") {
 
   // 4. Open Input Data
   std::string input_path = output_dir + "/";
-//  std::string input_path = output_dir + "/" + datafile;
 
-  if (model=="SingleA")    { input_path+=datafileA; }
-  if (model=="SingleB")    { input_path+=datafileB; }
-  if (model=="SingleMWPC") { input_path+=datafileM; }
-  if (model=="DoubleMB_M") { input_path+=datafileMB_M; }
-  if (model=="DoubleMB_B") { input_path+=datafileMB_B; }
-  if (model=="DoubleMA_M") { input_path+=datafileMA_M; }
-  if (model=="DoubleMA_A") { input_path+=datafileMA_A; }
+  if (model=="SingleMWPC")  { input_path+="komen_singleM.dat"; }
+  if (model=="SingleB")     { input_path+="komen_singleB.dat"; }
+  if (model=="SingleC")     { input_path+="komen_singleC.dat"; }
+  if (model=="SingleA")     { input_path+="komen_singleA.dat"; }
+  if (model=="DoubleM1B_M") { input_path+="komen_doubleM1B_M.dat"; }
+  if (model=="DoubleM1B_B") { input_path+="komen_doubleM1B_B.dat"; }
+  if (model=="DoubleM2B_M") { input_path+="komen_doubleM2B_M.dat"; }
+  if (model=="DoubleM2B_B") { input_path+="komen_doubleM2B_B.dat"; }
+  if (model=="DoubleM3B_M") { input_path+="komen_doubleM3B_M.dat"; }
+  if (model=="DoubleM3B_B") { input_path+="komen_doubleM3B_B.dat"; }
+  if (model=="DoubleM4B_M") { input_path+="komen_doubleM4B_M.dat"; }
+  if (model=="DoubleM4B_B") { input_path+="komen_doubleM4B_B.dat"; }
+  if (model=="DoubleM5B_M") { input_path+="komen_doubleM5B_M.dat"; }
+  if (model=="DoubleM5B_B") { input_path+="komen_doubleM5B_B.dat"; }
+  if (model=="DoubleM1C_M") { input_path+="komen_doubleM1C_M.dat"; }
+  if (model=="DoubleM1C_C") { input_path+="komen_doubleM1C_C.dat"; }
+  if (model=="DoubleM2C_M") { input_path+="komen_doubleM2C_M.dat"; }
+  if (model=="DoubleM2C_C") { input_path+="komen_doubleM2C_C.dat"; }
+  if (model=="DoubleM3C_M") { input_path+="komen_doubleM3C_M.dat"; }
+  if (model=="DoubleM3C_C") { input_path+="komen_doubleM3C_C.dat"; }
+  if (model=="DoubleM4C_M") { input_path+="komen_doubleM4C_M.dat"; }
+  if (model=="DoubleM4C_C") { input_path+="komen_doubleM4C_C.dat"; }
+  if (model=="DoubleM5C_M") { input_path+="komen_doubleM5C_M.dat"; }
+  if (model=="DoubleM5C_C") { input_path+="komen_doubleM5C_C.dat"; }
+  if (model=="DoubleM1A_M") { input_path+="komen_doubleM1A_M.dat"; }
+  if (model=="DoubleM1A_A") { input_path+="komen_doubleM1A_A.dat"; }
+  if (model=="DoubleM2A_M") { input_path+="komen_doubleM2A_M.dat"; }
+  if (model=="DoubleM2A_A") { input_path+="komen_doubleM2A_A.dat"; }
+  if (model=="DoubleM3A_M") { input_path+="komen_doubleM3A_M.dat"; }
+  if (model=="DoubleM3A_A") { input_path+="komen_doubleM3A_A.dat"; }
+  if (model=="DoubleM4A_M") { input_path+="komen_doubleM4A_M.dat"; }
+  if (model=="DoubleM4A_A") { input_path+="komen_doubleM4A_A.dat"; }
+  if (model=="DoubleM5A_M") { input_path+="komen_doubleM5A_M.dat"; }
+  if (model=="DoubleM5A_A") { input_path+="komen_doubleM5A_A.dat"; }
+  if (model=="DoubleBC_B")  { input_path+="komen_doubleBC_B.dat"; }
+  if (model=="DoubleBC_C")  { input_path+="komen_doubleBC_C.dat"; }
+  if (model=="DoubleCA_C")  { input_path+="komen_doubleCA_C.dat"; }
+  if (model=="DoubleCA_A")  { input_path+="komen_doubleCA_A.dat"; }
+  if (model=="DoubleBC_BC") { input_path+="komen_doubleBC_B.dat"; }
 
   std::ifstream input_dat(input_path.c_str());
   if (!input_dat.is_open()) {
@@ -119,33 +171,56 @@ int ReconstructionKomen(std::string model="ALL") {
     gSystem->Exit(EXIT_FAILURE);
   }
 
+  std::string input_path2 = output_dir + "/";
+  std::ifstream input_dat2;
+  if (model=="DoubleBC_BC") {
+    input_path2+="komen_doubleBC_C.dat";
+    input_dat2 = std::ifstream(input_path.c_str());
+  }
+
   // 5. Initialize Reconstruction Tools
   SciBar100x100* detector = new SciBar100x100(0.0,0.0,0.0);
-  TVector3 detector_position;
-
-  if (model=="SingleA")    { detector_position = detA_position; }
-  if (model=="SingleB")    { detector_position = detB_position; }
-  if (model=="SingleMWPC") { detector_position = MWPC_position; }
-  if (model=="DoubleMB_M") { detector_position = MWPC_position; }
-  if (model=="DoubleMB_B") { detector_position = detB_position; }
-  if (model=="DoubleMA_M") { detector_position = MWPC_position; }
-  if (model=="DoubleMA_A") { detector_position = detA_position; }
-
-  detector -> MoveXYZ(detector_position.X(),detector_position.Y(),detector_position.Z());
   detector -> SetLineColor(3);
   detector -> SetFillColor(3);
   detector -> SetDensity(0.0);
 
   ClusterMaker<SciBar100x100*> cluster_maker(detector);
-  cluster_maker.SetClusterModel(ClusterMaker<SciBar100x100*>::Global);
-//  cluster_maker.SetClusterModel(ClusterMaker<SciBar100x100*>::CombinedLocal);
+  cluster_maker.SetClusterModel(ClusterMaker<SciBar100x100*>::CombinedLocal);
 //  cluster_maker.SetClusterModel(ClusterMaker<SciBar100x100*>::CombinedGlobal);
 
-  TrackFinder track_finder(8, 1000000.0);
-  track_finder.SetMinimumHits(6);
+  if (model=="DoubleBC_BC") {
+    cluster_maker.SetClusterModel(ClusterMaker<SciBar100x100*>::Global);
+  }
+
+  SciBar100x100* detector2 = new SciBar100x100(0.0,0.0,0.0);
+  TVector3 detector2_position;
+  ClusterMaker<SciBar100x100*> cluster_maker2;
+  if (model=="DoubleBC_BC") {
+    detector2 -> MoveXYZ(detB_position.X()-1000.0,detB_position.Y(),detB_position.Z()+200.0);
+    detector2 -> SetLineColor(3);
+    detector2 -> SetFillColor(3);
+    detector2 -> SetDensity(0.0);
+    cluster_maker2 = ClusterMaker<SciBar100x100*>(detector2);
+    cluster_maker2.SetClusterModel(ClusterMaker<SciBar100x100*>::Global);
+  }
+
+
+  TrackFinder track_finder;
+  track_finder.SetTotalLayer(4);
+  track_finder.SetChisqCut(1000000.0);
+  track_finder.SetMinimumHits(4);
+  if (model=="DoubleBC_BC") {
+    track_finder.SetTotalLayer(16);
+    track_finder.SetMinimumHits(8);
+  }
+
+//  TrackFinder track_finder(16, 1000000.0);
+//  track_finder.SetMinimumHits(8);
+
+//  TrackFinder track_finder(8, 1000000.0);
+//  track_finder.SetMinimumHits(6);
 
 //  TrackFinder track_finder(4, 1000000.0);
-//  track_finder.SetMinimumHits(3);
 //  track_finder.SetMinimumHits(4);
 
 //  std::map<std::string, double> start_values;
@@ -195,33 +270,42 @@ int ReconstructionKomen(std::string model="ALL") {
      Info("Reconstruction", "Event %d: SpacePoints = %lu", i_events, all_space_points.size());
     }
 
-    // Step A': Shift the space point to the reference point
     std::vector<SpacePoint> space_points;
     for (const auto& space_point : all_space_points) {
-      SpacePoint sp(space_point.X()-detector_position.X(),
-                    space_point.Y()-detector_position.Y(),
-                    space_point.Z()-detector_position.Z());
+      SpacePoint sp(space_point.X(), space_point.Y(), space_point.Z());
       sp.SetErrorX(space_point.GetErrorX());
       sp.SetErrorY(space_point.GetErrorY());
       sp.SetErrorZ(space_point.GetErrorZ());
       sp.SetUnitIndex(space_point.GetUnitIndex());
-
       space_points.push_back(sp);
+    }
 
-//      std::cout << sp.X() << " " << sp.Y() << " " << sp.Z() << " " 
-//                << sp.GetErrorX() << " " << sp.GetErrorY() << " " << sp.GetErrorZ() << " " 
-//                << space_point.GetUnitIndex() << std::endl;
+    if (model=="DoubleBC_BC") {
+      std::getline(input_dat2, line);
+      std::stringstream data2(line);
+      std::vector<int> hit_ids2;
+      while (data2 >> hit_id) { hit_ids2.push_back(hit_id); } 
 
-
+      std::vector<SpacePoint> all_space_points2 = cluster_maker2.Execute(hit_ids2);
+      for (const auto& space_point : all_space_points2) {
+        SpacePoint sp(space_point.X(), space_point.Y(), space_point.Z());
+        sp.SetErrorX(space_point.GetErrorX());
+        sp.SetErrorY(space_point.GetErrorY());
+        sp.SetErrorZ(space_point.GetErrorZ());
+        sp.SetUnitIndex(space_point.GetUnitIndex()+8);
+        space_points.push_back(sp);
+      }
     }
 
     // Step B: Track Finding (Combinatorial Search and Fitting)
     Track best_track = track_finder.GetBestTrack(space_points);
-//    Track best_track = track_finder.GetBestTrack(all_space_points);
+
+// STSTST    Track best_track = track_finder.GetBestTrack(all_space_points);
 
     // Step C: Recording (Fill TTree if a valid track was found)
     if (best_track.IsValid()) {
 
+      m_counter       = i_events;
       m_num_hits      = best_track.GetNumHits();
       m_chisq         = best_track.GetChiSquare();
       m_ndf           = best_track.GetNDF();
