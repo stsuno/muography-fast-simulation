@@ -16,6 +16,7 @@ class SciBar100x100 : public CompositeShape {
     static constexpr double s_offset             = -49.5;
 
     static constexpr double s_localzposition[4] = {-15.0, -5.0, 5.0, 15.0};
+    static constexpr double s_localshift[4]     = {  0.0, 0.25, 0.5, 0.75};
 
     int GetNumLayers() const          { return s_nlayers; }
     int GetNumIDs() const             { return s_total_channel; }
@@ -62,8 +63,10 @@ inline SciBar100x100::SciBar100x100(double cx, double cy, double cz) {
 
   for (int i=0; i<s_nlayers; i++) {
     for (int j=0; j<s_nchannel_per_layer; j++) {
-      m_scintillator[s_nchannel_per_layer*2*i+j]                       -> MoveXYZ(s_offset+s_channel_width*j,0.0,s_localzposition[i]);
-      m_scintillator[s_nchannel_per_layer*2*i+j+s_nchannel_per_layer]  -> MoveXYZ(0.0,s_offset+s_channel_width*j,s_localzposition[i]);
+      m_scintillator[s_nchannel_per_layer*2*i+j]
+        -> MoveXYZ(s_offset+s_channel_width*j+s_localshift[i],0.0,s_localzposition[i]);
+      m_scintillator[s_nchannel_per_layer*2*i+j+s_nchannel_per_layer]
+        -> MoveXYZ(0.0,s_offset+s_channel_width*j+s_localshift[i],s_localzposition[i]);
     }
   }
 
@@ -132,7 +135,7 @@ inline std::vector<int> SciBar100x100::IsHitList(const Muon& muon) {
 inline TVector3 SciBar100x100::GetLocalPosition(int id) const {
   // Calculation logic based on the strip index
   int layer = GetLayerIndex(id)/2;
-  return TVector3(s_offset+s_channel_width*GetChannelIndex(id),0.0,s_localzposition[layer]);
+  return TVector3(s_offset+s_channel_width*GetChannelIndex(id)+s_localshift[layer],0.0,s_localzposition[layer]);
 }
 
 inline TVector3 SciBar100x100::GetGlobalPosition(int id) const {

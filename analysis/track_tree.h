@@ -24,6 +24,7 @@ class track_tree {
     // Fixed size dimensions of array or collections stored in the TTree if any.
 
     // Declaration of leaf types
+    Int_t           event_number;
     Int_t           num_hits;
     Double_t        chisq;
     Int_t           ndf;
@@ -43,6 +44,7 @@ class track_tree {
     std::vector<double>  *residual_y;
 
     // List of branches
+    TBranch        *b_event_number;   //!
     TBranch        *b_num_hits;   //!
     TBranch        *b_chisq;   //!
     TBranch        *b_ndf;   //!
@@ -100,6 +102,7 @@ void track_tree::Init(TTree *tree) {
   fCurrent = -1;
   fChain->SetMakeClass(1);
 
+  fChain->SetBranchAddress("event_number", &event_number, &b_event_number);
   fChain->SetBranchAddress("num_hits", &num_hits, &b_num_hits);
   fChain->SetBranchAddress("chisq", &chisq, &b_chisq);
   fChain->SetBranchAddress("ndf", &ndf, &b_ndf);
