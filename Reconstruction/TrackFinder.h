@@ -13,9 +13,12 @@
 
 class TrackFinder {
   public:
+    TrackFinder() { };
     TrackFinder(int nlayers, double reduced_chisq_threshold);
     virtual ~TrackFinder() {}
 
+    void SetTotalLayer(int nlayers) { m_num_units=nlayers; }
+    void SetChisqCut(double reduced_chisq_threshold) { m_reduced_chisq_threshold=reduced_chisq_threshold; }
     void SetMinimumHits(int minhit) { m_minhit=minhit; }
     void SetStartValues(std::map<std::string, double> start_values) {
       m_line_fitter.SetFittingParameters(&start_values, nullptr, nullptr);

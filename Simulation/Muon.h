@@ -20,6 +20,7 @@ extern int g_debug_level;
 
 class Muon : public TPolyLine3D {
   public:
+    Muon() { };
     Muon(ReadExpacs* reader, UInt_t random_seed = 1);
     virtual ~Muon();
 
@@ -42,11 +43,17 @@ class Muon : public TPolyLine3D {
     void SetCylinderBoundary(double radius, double height, int sign);
 
     double GetEnergyMuon() const { return m_energy_muon; }
-    int GetCharge() const { return m_charge; }
+    int    GetCharge() const { return m_charge; }
+    double GetTheta()  const { return m_theta; }
+    double GetPhi()    const { return m_phi; }
 
     TVector3 GetStartPoint() const { return TVector3(m_start_x, m_start_y, m_start_z); }
     TVector3 GetEndPoint() const { return TVector3(m_end_x, m_end_y, m_end_z); }
     TVector3 GetReferencePoint() const { return TVector3(m_reference_x, m_reference_y, m_reference_z); }
+
+    void SetEnergyMuon(double energy) { m_energy_muon=energy; }
+    void SetStartPoint(TVector3 p) { m_start_x=p.X(); m_start_y=p.Y(); m_start_z=p.Z(); }
+    void SetEndPoint(TVector3 p)   { m_end_x  =p.X(); m_end_y  =p.Y(); m_end_z  =p.Z(); }
 
     // Visualization
     void AddHitMarker(const TVector3& point);
@@ -66,7 +73,7 @@ class Muon : public TPolyLine3D {
     double m_end_x = 0.0, m_end_y = 0.0, m_end_z = 0.0;
     double m_reference_x = 0.0, m_reference_y = 0.0, m_reference_z = 0.0;
     double m_second_reference_z = 0.0;
-
+    double m_theta = 0.0, m_phi = 0.0;
     double m_boundary1_xmin = 0.0, m_boundary1_xmax = 0.0, m_boundary1_ymin = 0.0, m_boundary1_ymax = 0.0;
     double m_boundary2_xmin = 0.0, m_boundary2_xmax = 0.0, m_boundary2_ymin = 0.0, m_boundary2_ymax = 0.0;
 
@@ -255,6 +262,9 @@ inline bool Muon::Generate() {
   }
   if (theta_index == -1) theta_index = static_cast<int>(bounded_flux_pm.size()) - 1;
   double theta_deg = angles[theta_index]+m_rnd.Rndm();
+
+  m_phi   = TMath::DegToRad()*phi_deg;
+  m_theta = TMath::DegToRad()*theta_deg;
 
   // 6. Charge and energy sampling via inverse transform method with linear interpolation
   // Determine charge based on the plus/minus ratio at the sampled angle
