@@ -38,6 +38,7 @@ class TrackFinder {
 
     // Storage for the best candidate found during the search of a single event
     double m_min_reduced_chisq = TMath::Infinity();
+    int m_max_hits = 0;
     FitResult m_best_result;
     std::vector<SpacePoint> m_best_combination;
 };
@@ -51,6 +52,7 @@ inline TrackFinder::TrackFinder(int nlayers, double reduced_chisq_threshold)
 inline Track TrackFinder::GetBestTrack(const std::vector<SpacePoint>& all_space_points) {
   // Reset event-specific variables
   m_min_reduced_chisq = TMath::Infinity();
+  m_max_hits = 0;
   m_best_combination.clear();
   m_best_result = FitResult();
 
@@ -94,8 +96,10 @@ inline void TrackFinder::ExecuteSearch(const std::vector<std::vector<SpacePoint>
         if (g_debug_level>0) { Info("TrackFitter::ExecuteSearch", "HESSE: ok"); }
         if (result.reduced_chisq < m_reduced_chisq_threshold) {
           if (g_debug_level>0) { Info("TrackFitter::ExecuteSearch", "Track quality: ok"); }
-          if (result.reduced_chisq < m_min_reduced_chisq) {
+//          if (result.reduced_chisq < m_min_reduced_chisq) {
+          if (result.ndf>m_max_hits) {
             m_min_reduced_chisq = result.reduced_chisq;
+            m_max_hits = result.ndf;
             m_best_result = result;
             m_best_combination = current_combination;
           }
