@@ -35,6 +35,8 @@ class SciBar50x50 : public CompositeShape {
 
     std::vector<int> IsHitList(const Muon& muon);
 
+    RectangularPrism* GetScintillator(int id) const { return m_scintillator[id]; }
+
   private:
     std::vector<RectangularPrism*> m_scintillator;
     TVector3 m_detectorCenter;

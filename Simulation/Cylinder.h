@@ -36,8 +36,8 @@ inline Cylinder::Cylinder(double cx, double cy, double cz, double length, double
   }
 
   SetFace(faces);
-  m_faces_flag[0] = false;  // bottom
-  m_faces_flag[1] = false;  // top
+  m_faces_flag[0] = true;  // bottom
+  m_faces_flag[1] = true;  // top
 
   m_vertices.resize(m_num_edges * 2);
   SetVertex(length, radius);

@@ -22,6 +22,11 @@ class CompositeShape : public Shape {
     virtual std::vector<TVector3> HitPoints(const Muon& muon) const override;
     virtual bool IsInside(const TVector3& point) const override;
     virtual double DensityAt(const TVector3& point) const override;
+    virtual double AtomicNumberAt(const TVector3& point) const override;
+    virtual double AtomicMassAt(const TVector3& point) const override;
+    virtual double MeanExcitationEnergyAt(const TVector3& point) const override;
+    virtual SternheimerParameters SternheimerParametersAt(const TVector3& point) const override;
+
 
     // Visualization
     virtual void Draw(Option_t* option = "") override;
@@ -43,12 +48,26 @@ class CompositeShape : public Shape {
     virtual void SetPriority(int priority) override;
     virtual int GetPriority() const override { return m_priority; }
 
+    virtual void SetAtomicNumber(double atomic_number) override;
+    virtual double GetAtomicNumber() const override { return m_atomic_number; }
+    virtual void SetAtomicMass(double atomic_mass) override;
+    virtual double GetAtomicMass() const override { return m_atomic_mass; }
+    virtual void SetMeanExcitationEnergy(double mean_excitation_energy) override;
+    virtual double GetMeanExcitationEnergy() const override { return m_mean_excitation_energy; }
+    virtual void SetSternheimerParameters(const SternheimerParameters& parameters) override;
+    virtual SternheimerParameters GetSternheimerParameters() const override { return m_sternheimer_parameters; }
+
   private:
     // List of shapes, ordered by priority (index 0 is highest)
     std::vector<Shape*> m_shapes;
 
     double m_density = 0.0;
     int m_priority = s_invalid_priority;
+
+    double m_atomic_number = 0.0;
+    double m_atomic_mass = 0.0;
+    double m_mean_excitation_energy = 0.0;
+    SternheimerParameters m_sternheimer_parameters;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -111,6 +130,46 @@ inline double CompositeShape::DensityAt(const TVector3& point) const {
   return 0.0;
 }
 
+inline double CompositeShape::AtomicNumberAt(const TVector3& point) const {
+  // Returns the density of the first shape that contains the point
+  for (auto shape : m_shapes) {
+    if (shape->IsInside(point)) {
+      return shape->GetAtomicNumber();
+    }
+  }
+  return 0.0;
+}
+
+inline double CompositeShape::AtomicMassAt(const TVector3& point) const {
+  // Returns the density of the first shape that contains the point
+  for (auto shape : m_shapes) {
+    if (shape->IsInside(point)) {
+      return shape->GetAtomicMass();
+    }
+  }
+  return 0.0;
+}
+
+inline double CompositeShape::MeanExcitationEnergyAt(const TVector3& point) const {
+  // Returns the density of the first shape that contains the point
+  for (auto shape : m_shapes) {
+    if (shape->IsInside(point)) {
+      return shape->GetMeanExcitationEnergy();
+    }
+  }
+  return 0.0;
+}
+
+inline SternheimerParameters CompositeShape::SternheimerParametersAt(const TVector3& point) const {
+  // Returns the parameters of the first shape that contains the point
+  for (auto shape : m_shapes) {
+    if (shape->IsInside(point)) {
+      return shape->GetSternheimerParameters();
+    }
+  }
+  return SternheimerParameters{};
+}
+
 inline void CompositeShape::MoveXYZ(double dx, double dy, double dz) {
   for (auto shape : m_shapes) shape->MoveXYZ(dx, dy, dz);  
 }
@@ -139,6 +198,26 @@ inline void CompositeShape::SetDensity(double density) {
 inline void CompositeShape::SetPriority(int priority) {
   m_priority = priority;
   for (auto shape : m_shapes) shape->SetPriority(priority);
+}
+
+inline void CompositeShape::SetAtomicNumber(double atomic_number) {
+  m_atomic_number = atomic_number;
+  for (auto shape : m_shapes) shape->SetAtomicNumber(atomic_number);
+}
+
+inline void CompositeShape::SetAtomicMass(double atomic_mass) {
+  m_atomic_mass = atomic_mass;
+  for (auto shape : m_shapes) shape->SetAtomicMass(atomic_mass);
+}
+
+inline void CompositeShape::SetMeanExcitationEnergy(double mean_excitation_energy) {
+  m_mean_excitation_energy = mean_excitation_energy;
+  for (auto shape : m_shapes) shape->SetMeanExcitationEnergy(mean_excitation_energy);
+}
+
+inline void CompositeShape::SetSternheimerParameters(const SternheimerParameters& parameters) {
+  m_sternheimer_parameters = parameters;
+  for (auto shape : m_shapes) shape->SetSternheimerParameters(parameters);
 }
 
 inline void CompositeShape::SetLineColor(Color_t color) {

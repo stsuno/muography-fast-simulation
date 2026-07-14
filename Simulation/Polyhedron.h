@@ -30,6 +30,11 @@ class Polyhedron : public Shape {
     std::vector<TVector3> HitPoints(const Muon& muon) const override;
     bool IsInside(const TVector3& point) const override;
     double DensityAt(const TVector3& point) const override;
+    double AtomicNumberAt(const TVector3& point) const override;
+    double AtomicMassAt(const TVector3& point) const override;
+    double MeanExcitationEnergyAt(const TVector3& point) const override;
+    SternheimerParameters SternheimerParametersAt(const TVector3& point) const override;
+
 
     // Visualization
     void Draw(Option_t* option = "") override;
@@ -46,6 +51,16 @@ class Polyhedron : public Shape {
     double GetDensity() const override { return m_density; }
     void SetPriority(int priority) override { m_priority = priority; }
     int GetPriority() const override { return m_priority; }
+
+    double GetAtomicNumber() const override { return m_atomic_number; }
+    void SetAtomicNumber(double atomic_number) override { m_atomic_number = atomic_number; }
+    double GetAtomicMass() const override { return m_atomic_mass; }
+    void SetAtomicMass(double atomic_mass) override { m_atomic_mass = atomic_mass; }
+    double GetMeanExcitationEnergy() const override { return m_mean_excitation_energy; }
+    void SetMeanExcitationEnergy(double mean_excitation_energy) override { m_mean_excitation_energy = mean_excitation_energy; }
+    SternheimerParameters GetSternheimerParameters() const override { return m_sternheimer_parameters; }
+    void SetSternheimerParameters(const SternheimerParameters& parameters) override { m_sternheimer_parameters = parameters; }
+
     TVector3 GetCenter() const { return m_center; }
 
     std::vector<TVector3> GetVertices() const { return m_vertices; }
@@ -70,6 +85,11 @@ class Polyhedron : public Shape {
 
     double m_density = 0.0;
     int m_priority = s_invalid_priority;
+
+    double m_atomic_number = 0.0;
+    double m_atomic_mass = 0.0;
+    double m_mean_excitation_energy = 0.0;
+    SternheimerParameters m_sternheimer_parameters;
 
     void SetFace(const std::vector<std::vector<int>>& faces);
     void SetWireframe(int face_index);
@@ -351,6 +371,22 @@ inline bool Polyhedron::IsInside(const TVector3& point) const {
 
 inline double Polyhedron::DensityAt(const TVector3& point) const {
   return IsInside(point) ? m_density : 0.0;
+}
+
+inline double Polyhedron::AtomicNumberAt(const TVector3& point) const {
+  return IsInside(point) ? m_atomic_number : 0.0;
+}
+
+inline double Polyhedron::AtomicMassAt(const TVector3& point) const {
+  return IsInside(point) ? m_atomic_mass : 0.0;
+}
+
+inline double Polyhedron::MeanExcitationEnergyAt(const TVector3& point) const {
+  return IsInside(point) ? m_mean_excitation_energy : 0.0;
+}
+
+inline SternheimerParameters Polyhedron::SternheimerParametersAt(const TVector3& point) const {
+  return IsInside(point) ? m_sternheimer_parameters : SternheimerParameters{};
 }
 
 inline void Polyhedron::MoveXYZ(double dx, double dy, double dz) {

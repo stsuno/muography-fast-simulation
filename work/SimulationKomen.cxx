@@ -279,12 +279,20 @@ int SimulationKomen(std::string model="ALL") {
   ground -> SetLineColor(791);
   ground -> SetFillColor(791);
   ground -> SetDensity(density_soil);
+  ground -> SetAtomicNumber(GetAtomicNumber("StandardRock"));
+  ground -> SetAtomicMass(GetAtomicMass("StandardRock"));
+  ground -> SetMeanExcitationEnergy(GetMeanExcitationEnergy("StandardRock"));
+  ground -> SetSternheimerParameters(GetSternheimerParameters("StandardRock"));
 
   RectangularPrism* ground2 = new RectangularPrism(1000.0, 0.0, 0.25*geometry_rangez+300.0, 
                                                    1000.0, 50000.0, 0.5*geometry_rangez);
   ground2 -> SetLineColor(791);
   ground2 -> SetFillColor(791);
   ground2 -> SetDensity(density_soil);
+  ground2 -> SetAtomicNumber(GetAtomicNumber("StandardRock"));
+  ground2 -> SetAtomicMass(GetAtomicMass("StandardRock"));
+  ground2 -> SetMeanExcitationEnergy(GetMeanExcitationEnergy("StandardRock"));
+  ground2 -> SetSternheimerParameters(GetSternheimerParameters("StandardRock"));
 
   SciBar100x100* detA = new SciBar100x100(0.0,0.0,0.0);
   detA -> MoveXYZ(detA_position.X(),detA_position.Y(),detA_position.Z());
@@ -458,7 +466,7 @@ int SimulationKomen(std::string model="ALL") {
       double endZ   = muon->GetEndZ();
 
       Muon scattered_muon;
-      scattered_muon.SetEnergyMuon(Emu);
+      scattered_muon.SetEnergy(Emu);
       scattered_muon.SetStartPoint(TVector3((startZ-C)/A,(startZ-D)/B,startZ));
       scattered_muon.SetEndPoint(TVector3((endZ-C)/A,(endZ-D)/B,endZ));
       //=====================================================================

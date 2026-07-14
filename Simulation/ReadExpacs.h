@@ -209,7 +209,13 @@ inline void ReadExpacs::IntegrateFlux() {
     }
     double theta_rad = TMath::DegToRad() * m_sampling_angles[i];
     double d_theta = TMath::DegToRad() * (m_angles[i+1] - m_angles[i]);
-    double weight = 2.0 * TMath::Pi() * TMath::Sin(theta_rad);
+    // The EXPACS angular differential flux is a directional flux, i.e. per unit
+    // area PERPENDICULAR to the particle direction, per steradian
+    // [cm^-2 s^-1 sr^-1 MeV^-1] (T. Sato, PLOS ONE 11(8):e0160390, 2016).
+    // Muons are generated on a HORIZONTAL plane with uniformly sampled (x, y),
+    // so the crossing rate through that plane requires the projection factor
+    // cos(theta) in addition to the solid-angle element 2*pi*sin(theta)*d_theta.
+    double weight = 2.0 * TMath::Pi() * TMath::Sin(theta_rad) * TMath::Cos(theta_rad);
     m_angular_flux_p[i] = m_energy_integrated_flux_p[i] * weight * d_theta;
     m_angular_flux_m[i] = m_energy_integrated_flux_m[i] * weight * d_theta;
   }
