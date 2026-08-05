@@ -22,10 +22,10 @@ class CompositeShape : public Shape {
     virtual std::vector<TVector3> HitPoints(const Muon& muon) const override;
     virtual bool IsInside(const TVector3& point) const override;
     virtual double DensityAt(const TVector3& point) const override;
-    virtual double AtomicNumberAt(const TVector3& point) const override;
-    virtual double AtomicMassAt(const TVector3& point) const override;
+    virtual double ZOverAAt(const TVector3& point) const override;
     virtual double MeanExcitationEnergyAt(const TVector3& point) const override;
     virtual SternheimerParameters SternheimerParametersAt(const TVector3& point) const override;
+    virtual double RadiationLengthAt(const TVector3& point) const override;
 
 
     // Visualization
@@ -48,14 +48,14 @@ class CompositeShape : public Shape {
     virtual void SetPriority(int priority) override;
     virtual int GetPriority() const override { return m_priority; }
 
-    virtual void SetAtomicNumber(double atomic_number) override;
-    virtual double GetAtomicNumber() const override { return m_atomic_number; }
-    virtual void SetAtomicMass(double atomic_mass) override;
-    virtual double GetAtomicMass() const override { return m_atomic_mass; }
+    virtual void SetZOverA(double z_over_a) override;
+    virtual double GetZOverA() const override { return m_z_over_a; }
     virtual void SetMeanExcitationEnergy(double mean_excitation_energy) override;
     virtual double GetMeanExcitationEnergy() const override { return m_mean_excitation_energy; }
     virtual void SetSternheimerParameters(const SternheimerParameters& parameters) override;
     virtual SternheimerParameters GetSternheimerParameters() const override { return m_sternheimer_parameters; }
+
+    virtual void SetRadiationLength(double radiation_length) override;
 
   private:
     // List of shapes, ordered by priority (index 0 is highest)
@@ -64,8 +64,7 @@ class CompositeShape : public Shape {
     double m_density = 0.0;
     int m_priority = s_invalid_priority;
 
-    double m_atomic_number = 0.0;
-    double m_atomic_mass = 0.0;
+    double m_z_over_a = 0.0;
     double m_mean_excitation_energy = 0.0;
     SternheimerParameters m_sternheimer_parameters;
 };
@@ -130,21 +129,11 @@ inline double CompositeShape::DensityAt(const TVector3& point) const {
   return 0.0;
 }
 
-inline double CompositeShape::AtomicNumberAt(const TVector3& point) const {
-  // Returns the density of the first shape that contains the point
+inline double CompositeShape::ZOverAAt(const TVector3& point) const {
+  // Returns the <Z/A> of the first shape that contains the point
   for (auto shape : m_shapes) {
     if (shape->IsInside(point)) {
-      return shape->GetAtomicNumber();
-    }
-  }
-  return 0.0;
-}
-
-inline double CompositeShape::AtomicMassAt(const TVector3& point) const {
-  // Returns the density of the first shape that contains the point
-  for (auto shape : m_shapes) {
-    if (shape->IsInside(point)) {
-      return shape->GetAtomicMass();
+      return shape->GetZOverA();
     }
   }
   return 0.0;
@@ -160,7 +149,7 @@ inline double CompositeShape::MeanExcitationEnergyAt(const TVector3& point) cons
   return 0.0;
 }
 
-inline SternheimerParameters CompositeShape::SternheimerParametersAt(const TVector3& point) const {
+inline Shape::SternheimerParameters CompositeShape::SternheimerParametersAt(const TVector3& point) const {
   // Returns the parameters of the first shape that contains the point
   for (auto shape : m_shapes) {
     if (shape->IsInside(point)) {
@@ -168,6 +157,16 @@ inline SternheimerParameters CompositeShape::SternheimerParametersAt(const TVect
     }
   }
   return SternheimerParameters{};
+}
+
+inline double CompositeShape::RadiationLengthAt(const TVector3& point) const {
+  // Returns the radiation length of the first shape that contains the point
+  for (auto shape : m_shapes) {
+    if (shape->IsInside(point)) {
+      return shape->GetRadiationLength();
+    }
+  }
+  return 0.0;
 }
 
 inline void CompositeShape::MoveXYZ(double dx, double dy, double dz) {
@@ -200,14 +199,9 @@ inline void CompositeShape::SetPriority(int priority) {
   for (auto shape : m_shapes) shape->SetPriority(priority);
 }
 
-inline void CompositeShape::SetAtomicNumber(double atomic_number) {
-  m_atomic_number = atomic_number;
-  for (auto shape : m_shapes) shape->SetAtomicNumber(atomic_number);
-}
-
-inline void CompositeShape::SetAtomicMass(double atomic_mass) {
-  m_atomic_mass = atomic_mass;
-  for (auto shape : m_shapes) shape->SetAtomicMass(atomic_mass);
+inline void CompositeShape::SetZOverA(double z_over_a) {
+  m_z_over_a = z_over_a;
+  for (auto shape : m_shapes) shape->SetZOverA(z_over_a);
 }
 
 inline void CompositeShape::SetMeanExcitationEnergy(double mean_excitation_energy) {
@@ -218,6 +212,11 @@ inline void CompositeShape::SetMeanExcitationEnergy(double mean_excitation_energ
 inline void CompositeShape::SetSternheimerParameters(const SternheimerParameters& parameters) {
   m_sternheimer_parameters = parameters;
   for (auto shape : m_shapes) shape->SetSternheimerParameters(parameters);
+}
+
+inline void CompositeShape::SetRadiationLength(double radiation_length) {
+  m_radiation_length = radiation_length;
+  for (auto shape : m_shapes) shape->SetRadiationLength(radiation_length);
 }
 
 inline void CompositeShape::SetLineColor(Color_t color) {
