@@ -12,16 +12,16 @@
 #include "Simulation/Muon.h"
 #include "Simulation/Shape.h"
 
-// Structure to hold coefficients of the plane equation: ax + by + cz + d = 0
-struct SurfaceCoefficient {
-  double m_a;  // coefficient for x
-  double m_b;  // coefficient for y
-  double m_c;  // coefficient for z
-  double m_d;  // constant term
-};
-
 class Polyhedron : public Shape {
   public:
+    // Structure to hold coefficients of the plane equation: ax + by + cz + d = 0
+    struct SurfaceCoefficient {
+      double m_a;  // coefficient for x
+      double m_b;  // coefficient for y
+      double m_c;  // coefficient for z
+      double m_d;  // constant term
+    };
+
     Polyhedron() = default;
     virtual ~Polyhedron();
 
@@ -30,10 +30,10 @@ class Polyhedron : public Shape {
     std::vector<TVector3> HitPoints(const Muon& muon) const override;
     bool IsInside(const TVector3& point) const override;
     double DensityAt(const TVector3& point) const override;
-    double AtomicNumberAt(const TVector3& point) const override;
-    double AtomicMassAt(const TVector3& point) const override;
+    double ZOverAAt(const TVector3& point) const override;
     double MeanExcitationEnergyAt(const TVector3& point) const override;
     SternheimerParameters SternheimerParametersAt(const TVector3& point) const override;
+    double RadiationLengthAt(const TVector3& point) const override;
 
 
     // Visualization
@@ -52,10 +52,8 @@ class Polyhedron : public Shape {
     void SetPriority(int priority) override { m_priority = priority; }
     int GetPriority() const override { return m_priority; }
 
-    double GetAtomicNumber() const override { return m_atomic_number; }
-    void SetAtomicNumber(double atomic_number) override { m_atomic_number = atomic_number; }
-    double GetAtomicMass() const override { return m_atomic_mass; }
-    void SetAtomicMass(double atomic_mass) override { m_atomic_mass = atomic_mass; }
+    double GetZOverA() const override { return m_z_over_a; }
+    void SetZOverA(double z_over_a) override { m_z_over_a = z_over_a; }
     double GetMeanExcitationEnergy() const override { return m_mean_excitation_energy; }
     void SetMeanExcitationEnergy(double mean_excitation_energy) override { m_mean_excitation_energy = mean_excitation_energy; }
     SternheimerParameters GetSternheimerParameters() const override { return m_sternheimer_parameters; }
@@ -86,8 +84,7 @@ class Polyhedron : public Shape {
     double m_density = 0.0;
     int m_priority = s_invalid_priority;
 
-    double m_atomic_number = 0.0;
-    double m_atomic_mass = 0.0;
+    double m_z_over_a = 0.0;
     double m_mean_excitation_energy = 0.0;
     SternheimerParameters m_sternheimer_parameters;
 
@@ -373,20 +370,20 @@ inline double Polyhedron::DensityAt(const TVector3& point) const {
   return IsInside(point) ? m_density : 0.0;
 }
 
-inline double Polyhedron::AtomicNumberAt(const TVector3& point) const {
-  return IsInside(point) ? m_atomic_number : 0.0;
-}
-
-inline double Polyhedron::AtomicMassAt(const TVector3& point) const {
-  return IsInside(point) ? m_atomic_mass : 0.0;
+inline double Polyhedron::ZOverAAt(const TVector3& point) const {
+  return IsInside(point) ? m_z_over_a : 0.0;
 }
 
 inline double Polyhedron::MeanExcitationEnergyAt(const TVector3& point) const {
   return IsInside(point) ? m_mean_excitation_energy : 0.0;
 }
 
-inline SternheimerParameters Polyhedron::SternheimerParametersAt(const TVector3& point) const {
+inline Shape::SternheimerParameters Polyhedron::SternheimerParametersAt(const TVector3& point) const {
   return IsInside(point) ? m_sternheimer_parameters : SternheimerParameters{};
+}
+
+inline double Polyhedron::RadiationLengthAt(const TVector3& point) const {
+  return IsInside(point) ? m_radiation_length : 0.0;
 }
 
 inline void Polyhedron::MoveXYZ(double dx, double dy, double dz) {

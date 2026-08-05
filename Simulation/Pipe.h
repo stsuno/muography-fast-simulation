@@ -16,15 +16,10 @@ class Pipe : public CompositeShape {
     void SetHollowDensity(double density);
     double GetHollowDensity() const { return m_hollow_density; }
 
-    void SetShellAtomicNumber(double atomic_number);
-    double GetShellAtomicNumber() const { return m_shell_atomic_number; }
-    void SetHollowAtomicNumber(double atomic_number);
-    double GetHollowAtomicNumber() const { return m_hollow_atomic_number; }
-
-    void SetHollowAtomicMass(double atomic_mass);
-    double GetShellAtomicMass() const { return m_shell_atomic_mass; }
-    void SetShellAtomicMass(double atomic_mass);
-    double GetHollowAtomicMass() const { return m_hollow_atomic_mass; }
+    void SetShellZOverA(double z_over_a);
+    double GetShellZOverA() const { return m_shell_z_over_a; }
+    void SetHollowZOverA(double z_over_a);
+    double GetHollowZOverA() const { return m_hollow_z_over_a; }
 
     void SetShellMeanExcitationEnergy(double mean_excitation_energy);
     double GetShellMeanExcitationEnergy() const { return m_shell_mean_excitation_energy; }
@@ -36,13 +31,10 @@ class Pipe : public CompositeShape {
     double m_shell_density = 0.0;
     double m_hollow_density = 0.0;
 
-    double m_hollow_atomic_number = 0.0;
-    double m_hollow_atomic_mass = 0.0;
-    double m_hollow_mean_excitation_energy = 0.0;
-
-    double m_shell_atomic_number = 0.0;
-    double m_shell_atomic_mass = 0.0;
+    double m_shell_z_over_a = 0.0;
     double m_shell_mean_excitation_energy = 0.0;
+    double m_hollow_z_over_a = 0.0;
+    double m_hollow_mean_excitation_energy = 0.0;
 
     // Geometric components
     Cylinder* m_outer_cylinder;
@@ -70,24 +62,14 @@ inline void Pipe::SetHollowDensity(double density) {
   if (m_inner_cylinder) m_inner_cylinder->SetDensity(density);
 }
 
-inline void Pipe::SetShellAtomicNumber(double atomic_number) {
-  m_shell_atomic_number = atomic_number;
-  if (m_outer_cylinder) m_outer_cylinder->SetAtomicNumber(atomic_number);
+inline void Pipe::SetShellZOverA(double z_over_a) {
+  m_shell_z_over_a = z_over_a;
+  if (m_outer_cylinder) m_outer_cylinder->SetZOverA(z_over_a);
 }
 
-inline void Pipe::SetHollowAtomicNumber(double atomic_number) {
-  m_hollow_atomic_number = atomic_number;
-  if (m_inner_cylinder) m_inner_cylinder->SetAtomicNumber(atomic_number);
-}
-
-inline void Pipe::SetShellAtomicMass(double atomic_mass) {
-  m_shell_atomic_mass = atomic_mass;
-  if (m_outer_cylinder) m_outer_cylinder->SetAtomicMass(atomic_mass);
-}
-
-inline void Pipe::SetHollowAtomicMass(double atomic_mass) {
-  m_hollow_atomic_mass = atomic_mass;
-  if (m_inner_cylinder) m_inner_cylinder->SetAtomicMass(atomic_mass);
+inline void Pipe::SetHollowZOverA(double z_over_a) {
+  m_hollow_z_over_a = z_over_a;
+  if (m_inner_cylinder) m_inner_cylinder->SetZOverA(z_over_a);
 }
 
 inline void Pipe::SetShellMeanExcitationEnergy(double mean_excitation_energy) {
