@@ -6,6 +6,7 @@ R__ADD_INCLUDE_PATH(.);
 #include <vector>
 #include <fstream>
 #include <iomanip>
+#include <iostream>
 
 #include <TCanvas.h>
 #include <TView.h>
@@ -64,85 +65,54 @@ int SimulationWaterPipe() {
   RectangularPrism* ground = new RectangularPrism(0.0, 0.0, 150.0, geometry_rangexy, geometry_rangexy, 300.0);
   ground -> SetLineColor(791);
   ground -> SetFillColor(791);
-  ground -> SetDensity(GetDensity("NormalSoil"));
-  ground -> SetAtomicNumber(GetAtomicNumber("StandardRock"));
-  ground -> SetAtomicMass(GetAtomicMass("StandardRock"));
-  ground -> SetMeanExcitationEnergy(GetMeanExcitationEnergy("StandardRock"));
-  ground -> SetSternheimerParameters(GetSternheimerParameters("StandardRock"));
+  ground -> SetMaterial(MaterialList::GetMaterial("StandardRock"));
+  ground -> SetDensity(MaterialList::GetDensity("NormalSoil"));
 
   RectangularPrism* road = new RectangularPrism(0.0, 0.0, 305.0, geometry_rangexy, geometry_rangexy, 10.0);
   road -> SetLineColor(kGray+1);
   road -> SetFillColor(kGray);
-  road -> SetDensity(GetDensity("ShieldingConcrete"));
-  road -> SetAtomicNumber(GetAtomicNumber("ShieldingConcrete"));
-  road -> SetAtomicMass(GetAtomicMass("ShieldingConcrete"));
-  road -> SetMeanExcitationEnergy(GetMeanExcitationEnergy("ShieldingConcrete"));
-  road -> SetSternheimerParameters(GetSternheimerParameters("ShieldingConcrete"));
+  road -> SetMaterial(MaterialList::GetMaterial("ShieldingConcrete"));
 
   RectangularPrism* road2 = new RectangularPrism(0.0, 200.0, 310.0, geometry_rangexy, 20.0, 20.0);
   road2 -> SetLineColor(kGray+1);
   road2 -> SetFillColor(kGray);
-  road2 -> SetDensity(GetDensity("ShieldingConcrete"));
-  road2 -> SetAtomicNumber(GetAtomicNumber("ShieldingConcrete"));
-  road2 -> SetAtomicMass(GetAtomicMass("ShieldingConcrete"));
-  road2 -> SetMeanExcitationEnergy(GetMeanExcitationEnergy("ShieldingConcrete"));
-  road2 -> SetSternheimerParameters(GetSternheimerParameters("ShieldingConcrete"));
+  road2 -> SetMaterial(MaterialList::GetMaterial("ShieldingConcrete"));
 
   House *house = new House(200.0, 600.0, 310.0, 800.0, 400.0, 300.0);
-  house -> SetDensity(GetDensity("StandardRock"));
-  house -> SetAtomicNumber(GetAtomicNumber("StandardRock"));
-  house -> SetAtomicMass(GetAtomicMass("StandardRock"));
-  house -> SetMeanExcitationEnergy(GetMeanExcitationEnergy("StandardRock"));
-  house -> SetSternheimerParameters(GetSternheimerParameters("StandardRock"));
-  house -> SetRoofColor(901);
+  house -> SetMaterial(MaterialList::GetMaterial("StandardRock"));
 
   Pipe* pipe = new Pipe(0.0, 0.0, 200.0, geometry_rangexy, 14.0, 15.0);
   pipe -> RotateTheta(TMath::Pi()/2.0);
   pipe -> RotatePhi(TMath::Pi()/2.0);
   pipe -> SetLineColor(kGray+1);
   pipe -> SetFillColor(kGray+1);
-  pipe -> SetShellDensity(GetDensity("Polyvinyltoluene"));
-  pipe -> SetHollowDensity(GetDensity("Water"));
-  pipe -> SetAtomicNumber(GetAtomicNumber("Polyvinyltoluene"));
-  pipe -> SetAtomicMass(GetAtomicMass("Polyvinyltoluene"));
-  pipe -> SetMeanExcitationEnergy(GetMeanExcitationEnergy("Polyvinyltoluene"));
-  pipe -> SetSternheimerParameters(GetSternheimerParameters("Polyvinyltoluene"));
+  pipe -> SetMaterial(MaterialList::GetMaterial("Polyvinyltoluene"));
+  pipe -> SetShellDensity(MaterialList::GetDensity("Polyvinyltoluene"));
+  pipe -> SetHollowDensity(MaterialList::GetDensity("Water"));
 
   RectangularPyramid* anomaly = new RectangularPyramid(0.0, 0.0, 185.0, 200.0, 20.0, 30.0);
   anomaly -> RotateTheta(TMath::Pi());
   anomaly -> MoveXYZ(100.0, 0.0, 0.0);
   anomaly -> SetLineColor(kAzure-4);
   anomaly -> SetFillColor(kAzure-4);
-  anomaly -> SetDensity(GetDensity("Water"));
-  anomaly -> SetAtomicNumber(GetAtomicNumber("Water"));
-  anomaly -> SetAtomicMass(GetAtomicMass("Water"));
-  anomaly -> SetMeanExcitationEnergy(GetMeanExcitationEnergy("Water"));
-  anomaly -> SetSternheimerParameters(GetSternheimerParameters("Water"));
-//  anomaly -> SetDensity(GetDensity("Air"));
+  anomaly -> SetMaterial(MaterialList::GetMaterial("Water"));
 
   Pipe* manhole0 = new Pipe(detector_position.X()+500.0,detector_position.Y()-75.0, 260.0, 120.0, 60.0, 65.0);
   manhole0 -> SetLineColor(kGray+1);
   manhole0 -> SetFillColor(kGray);
-  manhole0 -> SetShellDensity(GetDensity("ShieldingConcrete"));
-  manhole0 -> SetHollowDensity(GetDensity("Air"));
-  manhole0 -> SetAtomicNumber(GetAtomicNumber("ShieldingConcrete"));
-  manhole0 -> SetAtomicMass(GetAtomicMass("ShieldingConcrete"));
-  manhole0 -> SetMeanExcitationEnergy(GetMeanExcitationEnergy("ShieldingConcrete"));
-  manhole0 -> SetSternheimerParameters(GetSternheimerParameters("ShieldingConcrete"));
+  manhole0 -> SetMaterial(MaterialList::GetMaterial("ShieldingConcrete"));
+  manhole0 -> SetShellDensity(MaterialList::GetDensity("ShieldingConcrete"));
+  manhole0 -> SetHollowDensity(MaterialList::GetDensity("Air"));
 
   Cylinder* manhole1 = new Cylinder(detector_position.X()+500.0,detector_position.Y()-75.0, 319, 2.0, 60.0);
   manhole1 -> SetLineColor(kGray+3);
   manhole1 -> SetFillColor(kGray+2);
-  manhole1 -> SetDensity(GetDensity("Iron"));
-  manhole1 -> SetAtomicNumber(GetAtomicNumber("Iron"));
-  manhole1 -> SetAtomicMass(GetAtomicMass("Iron"));
-  manhole1 -> SetMeanExcitationEnergy(GetMeanExcitationEnergy("Iron"));
-  manhole1 -> SetSternheimerParameters(GetSternheimerParameters("Iron"));
+  manhole1 -> SetMaterial(MaterialList::GetMaterial("Steel"));
 
   RectangularPrism* manhole2 = new RectangularPrism(0.0,detector_position.Y()-75.0, 100.0, geometry_rangexy, 200.0, 200.0);
   manhole2 -> SetLineColor(kGray+1);
   manhole2 -> SetFillColor(kGray);
-  manhole2 -> SetDensity(GetDensity("Air"));
+  manhole2 -> SetMaterial(MaterialList::GetMaterial("Air"));
 
   SciBar50x50* detector = new SciBar50x50(0.0,0.0,0.0);
   detector -> MoveXYZ(detector_position.X(),detector_position.Y(),detector_position.Z());

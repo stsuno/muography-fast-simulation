@@ -5,6 +5,8 @@
 #include <vector>
 #include <utility>
 #include <algorithm>
+#include <random>
+#include <iomanip>
 
 #include <TPolyLine3D.h>
 #include <TPolyMarker3D.h>
@@ -22,7 +24,7 @@ class Muon : public TPolyLine3D {
   public:
     static constexpr double kMuonMass = 105.6583755; // Muon mass in MeV/c^2
 
-    Muon() { };
+    // Muon(ReadExpacs* reader, UInt_t random_seed = std::random_device{}());
     Muon(ReadExpacs* reader, UInt_t random_seed = 1);
     Muon(const Muon& other);
     Muon& operator=(const Muon& other);
@@ -47,18 +49,14 @@ class Muon : public TPolyLine3D {
     void SetCylinderBoundary(double radius, double height, int sign);
 
     double GetEnergyMuon() const { return m_energy_muon; }
-    int    GetCharge() const { return m_charge; }
-    double GetTheta()  const { return m_theta; }
-    double GetPhi()    const { return m_phi; }
+    int GetCharge() const { return m_charge; }
+    double GetTheta() const { return m_theta; }
+    double GetPhi()   const { return m_phi; }
 
     TVector3 GetStartPoint() const { return TVector3(m_start_x, m_start_y, m_start_z); }
     TVector3 GetEndPoint() const { return TVector3(m_end_x, m_end_y, m_end_z); }
     TVector3 GetReferencePoint() const { return TVector3(m_reference_x, m_reference_y, m_reference_z); }
-
     void SetTrackEndpoints(const TVector3& start_point, const TVector3& end_point);
-
-    void SetStartPoint(TVector3 p) { m_start_x=p.X(); m_start_y=p.Y(); m_start_z=p.Z(); }
-    void SetEndPoint(TVector3 p)   { m_end_x  =p.X(); m_end_y  =p.Y(); m_end_z  =p.Z(); }
 
     // Visualization
     void AddHitMarker(const TVector3& point);
@@ -67,17 +65,26 @@ class Muon : public TPolyLine3D {
 
     void SetEnergy(double energy) { m_energy_muon = energy; }
 
+    // Stopping power and density-effect correction, exposed as statics so that
+    // other transport code (Simulation/MuonTransport.h) uses the same physics
+    // instead of duplicating the Bethe-Bloch implementation.
+    // BetheBlochdEdx returns dE/dx in [MeV cm2/g] (multiply by density to get
+    // [MeV/cm]); muon_energy is the total energy [MeV].
+    static double BetheBlochdEdx(double z_over_a, double I,
+                                 const Shape::SternheimerParameters& sternheimer,
+                                 double muon_energy);
+    static double CalculateDensityEffect(double beta_gamma, const Shape::SternheimerParameters& sternheimer);
+
   private:
     mutable std::vector<std::pair<double, double>> m_dEdx_log;
 
     // Constants for geometric calculations
     static constexpr double s_epsilon = 1e-9;  // Threshold to determine if a value is effectively zero
 
-//    double CalculateSegmentEnergyLoss(double density, double muon_energy, double path_length);
-    double CalculateSegmentEnergyLoss(double density, double Z, double A, double I,
-                                      const SternheimerParameters& sternheimer,
+    // double CalculateSegmentEnergyLoss(double density, double muon_energy, double path_length);
+    double CalculateSegmentEnergyLoss(double density, double z_over_a, double I,
+                                      const Shape::SternheimerParameters& sternheimer,
                                       double muon_energy, double path_length);
-    double CalculateDensityEffect(double beta_gamma, const SternheimerParameters& sternheimer) const;
 
     ReadExpacs* m_reader;
     TRandom3 m_rnd;
@@ -87,6 +94,7 @@ class Muon : public TPolyLine3D {
     double m_reference_x = 0.0, m_reference_y = 0.0, m_reference_z = 0.0;
     double m_second_reference_z = 0.0;
     double m_theta = 0.0, m_phi = 0.0;
+
     double m_boundary1_xmin = 0.0, m_boundary1_xmax = 0.0, m_boundary1_ymin = 0.0, m_boundary1_ymax = 0.0;
     double m_boundary2_xmin = 0.0, m_boundary2_xmax = 0.0, m_boundary2_ymin = 0.0, m_boundary2_ymax = 0.0;
 
@@ -123,6 +131,7 @@ inline Muon::Muon(const Muon& other)
     m_end_x(other.m_end_x), m_end_y(other.m_end_y), m_end_z(other.m_end_z),
     m_reference_x(other.m_reference_x), m_reference_y(other.m_reference_y), m_reference_z(other.m_reference_z),
     m_second_reference_z(other.m_second_reference_z),
+    m_theta(other.m_theta), m_phi(other.m_phi),
     m_boundary1_xmin(other.m_boundary1_xmin), m_boundary1_xmax(other.m_boundary1_xmax),
     m_boundary1_ymin(other.m_boundary1_ymin), m_boundary1_ymax(other.m_boundary1_ymax),
     m_boundary2_xmin(other.m_boundary2_xmin), m_boundary2_xmax(other.m_boundary2_xmax),
@@ -145,6 +154,7 @@ inline Muon& Muon::operator=(const Muon& other) {
   m_end_x = other.m_end_x; m_end_y = other.m_end_y; m_end_z = other.m_end_z;
   m_reference_x = other.m_reference_x; m_reference_y = other.m_reference_y; m_reference_z = other.m_reference_z;
   m_second_reference_z = other.m_second_reference_z;
+  m_theta = other.m_theta; m_phi = other.m_phi;
   m_boundary1_xmin = other.m_boundary1_xmin; m_boundary1_xmax = other.m_boundary1_xmax;
   m_boundary1_ymin = other.m_boundary1_ymin; m_boundary1_ymax = other.m_boundary1_ymax;
   m_boundary2_xmin = other.m_boundary2_xmin; m_boundary2_xmax = other.m_boundary2_xmax;
@@ -231,7 +241,7 @@ inline bool Muon::Generate() {
     // The 2nd. boundary constraint is active only when the two reference planes
     // are separated in z (checking |m_second_reference_z| would break as soon as
     // the geometry places the 2nd. reference plane at z = 0).
-    if (TMath::Abs(m_second_reference_z)>s_epsilon) {
+    if (delta_z > s_epsilon) {
       // Check if reference point is inside or outside 2nd. boundary
       bool is_inside = (m_reference_x >= m_boundary2_xmin && m_reference_x <= m_boundary2_xmax &&
           m_reference_y >= m_boundary2_ymin && m_reference_y <= m_boundary2_ymax);
@@ -463,10 +473,9 @@ inline std::pair<double, double> Muon::CalculateEnergyLoss(const std::vector<Sha
     TVector3 segment_middle = (unique_points[i] + unique_points[i+1]) * 0.5;
     int highest_priority = Shape::s_invalid_priority;
     double selected_density = 0.0;
-    double selected_atomic_number = 0.0;
-    double selected_atomic_mass = 0.0;
+    double selected_z_over_a = 0.0;
     double selected_mean_excitation_energy = 0.0;
-    SternheimerParameters selected_sternheimer_parameters;
+    Shape::SternheimerParameters selected_sternheimer_parameters;
     bool found_material = false;
 
     if (g_debug_level>0) { Info("Muon::CalculateEnergyLoss", "highest priority: %d", highest_priority); }
@@ -476,8 +485,7 @@ inline std::pair<double, double> Muon::CalculateEnergyLoss(const std::vector<Sha
           highest_priority = shape->GetPriority();
           selected_density = shape->DensityAt(segment_middle);
 
-          selected_atomic_number = shape->AtomicNumberAt(segment_middle);
-          selected_atomic_mass = shape->AtomicMassAt(segment_middle);
+          selected_z_over_a = shape->ZOverAAt(segment_middle);
           selected_mean_excitation_energy = shape->MeanExcitationEnergyAt(segment_middle);
           selected_sternheimer_parameters = shape->SternheimerParametersAt(segment_middle);
 
@@ -491,8 +499,7 @@ inline std::pair<double, double> Muon::CalculateEnergyLoss(const std::vector<Sha
       Info("Muon::CalculateEnergyLoss", "segment middle: (%.2f, %.2f, %.2f)", segment_middle.X(), segment_middle.Y(), segment_middle.Z());
       Info("Muon::CalculateEnergyLoss", "selected density: %.2f", selected_density);
 
-      Info("Muon::CalculateEnergyLoss", "selected_atomic_number: %.2f", selected_atomic_number);
-      Info("Muon::CalculateEnergyLoss", "selected_atomic_mass: %.4f", selected_atomic_mass);
+      Info("Muon::CalculateEnergyLoss", "selected_z_over_a: %.5f", selected_z_over_a);
       Info("Muon::CalculateEnergyLoss", "selected_mean_excitation energy: %.10f", selected_mean_excitation_energy);
     }
     if (found_material && selected_density > s_epsilon) {
@@ -500,7 +507,7 @@ inline std::pair<double, double> Muon::CalculateEnergyLoss(const std::vector<Sha
       if (current_muon_energy <= kMuonMass + s_epsilon) break;
       double path_length = (unique_points[i] - unique_points[i+1]).Mag();
       // energy_loss += CalculateSegmentEnergyLoss(selected_density, current_muon_energy, path_length);
-      energy_loss += CalculateSegmentEnergyLoss(selected_density, selected_atomic_number, selected_atomic_mass, selected_mean_excitation_energy, selected_sternheimer_parameters, current_muon_energy, path_length);
+      energy_loss += CalculateSegmentEnergyLoss(selected_density, selected_z_over_a, selected_mean_excitation_energy, selected_sternheimer_parameters, current_muon_energy, path_length);
     }
   }
 
@@ -550,7 +557,7 @@ inline std::pair<double, double> Muon::CalculateEnergyLoss(const std::vector<Sha
 // Coefficients are material-specific, taken from the PDG Atomic and Nuclear
 // Properties tables (https://pdg.lbl.gov/2026/AtomicNuclearProperties/);
 // see GetSternheimerParameters() in Simulation/MaterialList.h.
-inline double Muon::CalculateDensityEffect(double beta_gamma, const SternheimerParameters& sternheimer) const {
+inline double Muon::CalculateDensityEffect(double beta_gamma, const Shape::SternheimerParameters& sternheimer) {
   if (beta_gamma <= 0.0) return 0.0;
   // Uninitialized parameters (all zero) -> no correction
   if (sternheimer.m_cbar <= 0.0) return 0.0;
@@ -569,14 +576,41 @@ inline double Muon::CalculateDensityEffect(double beta_gamma, const SternheimerP
   return sternheimer.m_delta0 * TMath::Power(10.0, 2.0 * (x - sternheimer.m_x0));
 }
 
-// new version
-inline double Muon::CalculateSegmentEnergyLoss(double density, double Z, double A, double I,
-                                               const SternheimerParameters& sternheimer,
-                                               double muon_energy, double path_length) {
+// Mass stopping power dE/dx [MeV cm2/g] from the Bethe-Bloch formula
+// (PDG Eq. 34.5). Split out of CalculateSegmentEnergyLoss() so that
+// MuonTransport can share the identical implementation.
+inline double Muon::BetheBlochdEdx(double z_over_a, double I,
+                                   const Shape::SternheimerParameters& sternheimer,
+                                   double muon_energy) {
   constexpr double kElectronMass = 0.51099895; // me c^2 [MeV]
   constexpr double K = 0.307075; // [MeV mol^-1 cm^2]
   constexpr double z = 1.0; // charge of the muon
 
+  double gamma = muon_energy / kMuonMass;
+  if (gamma < 1.0) gamma = 1.0;
+
+  double beta2 = 1.0 - 1.0 / (gamma * gamma);
+  if (beta2 <= 0.0) return 0.0;
+
+  //calculate W_max
+  double me_M = kElectronMass / kMuonMass;
+  double Wmax = (2.0 * kElectronMass * beta2 * gamma * gamma) / (1.0 + 2.0 * gamma * me_M + me_M * me_M);
+
+  // Density-effect correction delta(beta*gamma) (PDG Eq. 34.7)
+  double beta_gamma = TMath::Sqrt(beta2) * gamma;
+  double delta = CalculateDensityEffect(beta_gamma, sternheimer);
+
+  // Bethe-Bloch formula (PDG Eq. 34.5)
+  double log_term = TMath::Log((2.0 * kElectronMass * beta2 * gamma * gamma * Wmax) / (I * I));
+  double dEdx = K * (z * z) * z_over_a * (1.0 / beta2) * (0.5 * log_term - beta2 - 0.5 * delta);  // [MeV cm^2/g]
+
+  return (dEdx < 0.0) ? 0.0 : dEdx;
+}
+
+// new version
+inline double Muon::CalculateSegmentEnergyLoss(double density, double z_over_a, double I,
+                                               const Shape::SternheimerParameters& sternheimer,
+                                               double muon_energy, double path_length) {
   double current_energy = muon_energy;    // [MeV]
   double initial_energy = current_energy; // [MeV]
 
@@ -588,23 +622,9 @@ inline double Muon::CalculateSegmentEnergyLoss(double density, double Z, double 
 
     double gamma = current_energy / kMuonMass;
     if (gamma < 1.0) gamma = 1.0;
+    if (1.0 - 1.0 / (gamma * gamma) <= 0.0) break;
 
-    double beta2 = 1.0 - 1.0 / (gamma * gamma);
-    if (beta2 <= 0.0) break;
-
-    //calculate W_max
-    double me_M = kElectronMass / kMuonMass;
-    double Wmax = (2.0 * kElectronMass * beta2 * gamma * gamma) / (1.0 + 2.0 * gamma * me_M + me_M * me_M);
-
-    // Density-effect correction delta(beta*gamma) (PDG Eq. 34.7)
-    double beta_gamma = TMath::Sqrt(beta2) * gamma;
-    double delta = CalculateDensityEffect(beta_gamma, sternheimer);
-
-    // Bethe-Bloch formula (PDG Eq. 34.5)
-    double log_term = TMath::Log((2.0 * kElectronMass * beta2 * gamma * gamma * Wmax) / (I * I));
-    double dEdx = K * (z * z) * (Z / A) * (1.0 / beta2) * (0.5 * log_term - beta2 - 0.5 * delta);  // [MeV cm^2/g]
-
-    if(dEdx < 0.0) dEdx = 0.0;
+    double dEdx = BetheBlochdEdx(z_over_a, I, sternheimer, current_energy);  // [MeV cm^2/g]
 
     m_dEdx_log.emplace_back(current_energy, dEdx);
 
