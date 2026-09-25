@@ -43,6 +43,12 @@ class track_tree {
     std::vector<double>  *residual_x;
     std::vector<double>  *residual_y;
 
+    Double_t        muon_energy;
+    Double_t        muon_loss;
+    Int_t           muon_charge;
+    Double_t        muon_phi;
+    Double_t        muon_theta;
+
     // List of branches
     TBranch        *b_event_number;   //!
     TBranch        *b_num_hits;   //!
@@ -62,6 +68,12 @@ class track_tree {
     TBranch        *b_theta;   //!
     TBranch        *b_residual_x;   //!
     TBranch        *b_residual_y;   //!
+
+    TBranch        *b_muon_energy;  //!
+    TBranch        *b_muon_loss;    //!
+    TBranch        *b_muon_charge;  //!
+    TBranch        *b_muon_phi;     //!
+    TBranch        *b_muon_theta;   //!
 
     track_tree(TTree *tree=0);
     virtual ~track_tree();
@@ -120,6 +132,13 @@ void track_tree::Init(TTree *tree) {
   fChain->SetBranchAddress("theta", &theta, &b_theta);
   fChain->SetBranchAddress("residual_x", &residual_x, &b_residual_x);
   fChain->SetBranchAddress("residual_y", &residual_y, &b_residual_y);
+
+  fChain->SetBranchAddress("muon_energy", &muon_energy, &b_muon_energy);
+  fChain->SetBranchAddress("muon_loss",   &muon_loss,   &b_muon_loss);
+  fChain->SetBranchAddress("muon_charge", &muon_charge, &b_muon_charge);
+  fChain->SetBranchAddress("muon_phi",    &muon_phi,    &b_muon_phi);
+  fChain->SetBranchAddress("muon_theta",  &muon_theta,  &b_muon_theta);
+
   Notify();
 }
 

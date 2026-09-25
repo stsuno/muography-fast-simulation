@@ -14,6 +14,7 @@
 
 #include "KomenAnalysis.h"
 #include "SakurajimaAnalysis.h"
+#include "DemoTest.h"
 
 int main(int argc, char **argv) {
 
@@ -27,9 +28,10 @@ int main(int argc, char **argv) {
   //      ==2: double detector mode for KomenAnalysis
   //
   // imode==3: SakurajimaAnalysis
+  // imode==4: DemoTest
   //=====================================================
-  if (imode<1 || imode>3) {
-    std::cout << "ERROR::Set mode=1 or 2." << std::endl;
+  if (imode<1 || imode>4) {
+    std::cout << "ERROR::Set mode=1 ~ 4." << std::endl;
     abort();
   }
 
@@ -73,17 +75,24 @@ int main(int argc, char **argv) {
     if (inputfilename1.find("doubleM4C")!=std::string::npos) { MWPC_position.SetXYZ(1000.0, 200.0,2200.0); }
     if (inputfilename1.find("doubleM5C")!=std::string::npos) { MWPC_position.SetXYZ(1000.0,-200.0,2200.0); }
 
-    if (inputfilename1.find("doubleM1A")!=std::string::npos) { MWPC_position.SetXYZ(2000.0,   0.0,2400.0); }
-    if (inputfilename1.find("doubleM2A")!=std::string::npos) { MWPC_position.SetXYZ(2000.0, 100.0,2400.0); }
-    if (inputfilename1.find("doubleM3A")!=std::string::npos) { MWPC_position.SetXYZ(2000.0,-100.0,2400.0); }
-    if (inputfilename1.find("doubleM4A")!=std::string::npos) { MWPC_position.SetXYZ(2000.0, 200.0,2400.0); }
-    if (inputfilename1.find("doubleM5A")!=std::string::npos) { MWPC_position.SetXYZ(2000.0,-200.0,2400.0); }
+    if (inputfilename1.find("doubleM1A")!=std::string::npos) { MWPC_position.SetXYZ(6000.0,   0.0,2400.0); }
+    if (inputfilename1.find("doubleM2A")!=std::string::npos) { MWPC_position.SetXYZ(6000.0, 100.0,2400.0); }
+    if (inputfilename1.find("doubleM3A")!=std::string::npos) { MWPC_position.SetXYZ(6000.0,-100.0,2400.0); }
+    if (inputfilename1.find("doubleM4A")!=std::string::npos) { MWPC_position.SetXYZ(6000.0, 200.0,2400.0); }
+    if (inputfilename1.find("doubleM5A")!=std::string::npos) { MWPC_position.SetXYZ(6000.0,-200.0,2400.0); }
+
     myana.SetMWPCPosition(MWPC_position);
     myana.execute();
     myana.finalize();
   }
   else if (imode==3) {
     SakurajimaAnalysis myana(tree);
+    myana.initialize(rout);
+    myana.execute();
+    myana.finalize();
+  }
+  else if (imode==4) {
+    DemoTest myana(tree);
     myana.initialize(rout);
     myana.execute();
     myana.finalize();
