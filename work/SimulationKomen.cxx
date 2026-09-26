@@ -271,28 +271,22 @@ int SimulationKomen(std::string model="ALL") {
   // O:47%, Si:28%, Al:8%, Fe:5%, Ca:4%, Na:3%, K:3%, Mg:2%
   const double atomic_soil  = 0.47* 8+0.28*14+0.08*13+0.05*26+0.04*20+0.03*11+0.03*19+0.02*12;
   const double mass_soil    = 0.47*16+0.28*28+0.08*27+0.05*56+0.04*40+0.03*23+0.03*39+0.02*24;
-  const double density_soil = GetDensity("NormalSoil");
+  const double density_soil = MaterialList::GetDensity("NormalSoil");
   const double SoilX0 = 716.4*mass_soil/(atomic_soil*(atomic_soil+1.0)*TMath::Log(287.0/TMath::Sqrt(atomic_soil)))/density_soil;   // Radiation length
 
   RectangularPrism* ground = new RectangularPrism(4000.0, 0.0, 0.5*geometry_rangez+300.0, 
                                                   5000.0, 50000.0, geometry_rangez);
   ground -> SetLineColor(791);
   ground -> SetFillColor(791);
-  ground -> SetDensity(density_soil);
-  ground -> SetAtomicNumber(GetAtomicNumber("StandardRock"));
-  ground -> SetAtomicMass(GetAtomicMass("StandardRock"));
-  ground -> SetMeanExcitationEnergy(GetMeanExcitationEnergy("StandardRock"));
-  ground -> SetSternheimerParameters(GetSternheimerParameters("StandardRock"));
+  ground -> SetMaterial(MaterialList::GetMaterial("StandardRock"));
+  ground -> SetDensity(MaterialList::GetDensity("NormalSoil"));
 
   RectangularPrism* ground2 = new RectangularPrism(1000.0, 0.0, 0.25*geometry_rangez+300.0, 
                                                    1000.0, 50000.0, 0.5*geometry_rangez);
   ground2 -> SetLineColor(791);
   ground2 -> SetFillColor(791);
-  ground2 -> SetDensity(density_soil);
-  ground2 -> SetAtomicNumber(GetAtomicNumber("StandardRock"));
-  ground2 -> SetAtomicMass(GetAtomicMass("StandardRock"));
-  ground2 -> SetMeanExcitationEnergy(GetMeanExcitationEnergy("StandardRock"));
-  ground2 -> SetSternheimerParameters(GetSternheimerParameters("StandardRock"));
+  ground -> SetMaterial(MaterialList::GetMaterial("StandardRock"));
+  ground -> SetDensity(MaterialList::GetDensity("NormalSoil"));
 
   SciBar100x100* detA = new SciBar100x100(0.0,0.0,0.0);
   detA -> MoveXYZ(detA_position.X(),detA_position.Y(),detA_position.Z());

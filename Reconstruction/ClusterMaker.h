@@ -16,14 +16,15 @@ class ClusterMaker {
     ClusterMaker(VariousDetector detector):m_detector(detector),m_model(CombinedLocal) {}
     virtual ~ClusterMaker() {}
 
-    enum ClusterModel{Global,CombinedLocal,CombinedGlobal,GlobalAndTime};
+    enum ClusterModel{Local,Global,CombinedLocal,CombinedGlobal,GlobalAndTime};
 
     void SetClusterModel(ClusterMaker::ClusterModel model) { m_model=model; }
 
     // Processes a list of raw hit IDs and returns a collection of SpacePoints.
     std::vector<SpacePoint> Execute(const std::vector<int>& hit_ids) const {
       if (hit_ids.empty()) return {};
-      if      (m_model==Global)         { return SetGlobal(hit_ids); }
+      if      (m_model==Local)          { return SetLocal(hit_ids); }
+      else if (m_model==Global)         { return SetGlobal(hit_ids); }
       else if (m_model==CombinedGlobal) { return SetCombinedGlobal(hit_ids); }
       else if (m_model==CombinedLocal)  { return SetCombinedLocal(hit_ids); }
       return {};
@@ -47,6 +48,33 @@ class ClusterMaker {
           TVector3 pos(0.0,0.0,0.0),err(0.0,0.0,0.0);
           for (int id : cluster) { 
             pos += m_detector->GetGlobalPosition(id); 
+            err += m_detector->GetGlobalPositionError(id);
+          }
+          if (cluster.size()) { 
+            pos *= 1.0/cluster.size();
+            err *= 1.0/cluster.size();
+          }
+          SpacePoint space_point(pos.X(),pos.Y(),pos.Z());
+          space_point.SetUnitIndex(layer);
+          space_point.SetErrorX(err.X());
+          space_point.SetErrorY(err.Y());
+          space_point.SetErrorZ(err.Z());
+
+          // TODO: Implement ghost rejection logic
+          space_points.push_back(space_point);
+        }
+      }
+      return space_points;
+    }
+
+    std::vector<SpacePoint> SetLocal(const std::vector<int>& hit_ids) const {
+      std::vector<SpacePoint> space_points;
+      for (auto& [layer, clusters] : Clustering(hit_ids)) {
+        for (const auto& cluster : clusters) {
+          // Calculate average position (Center of Gravity)
+          TVector3 pos(0.0,0.0,0.0),err(0.0,0.0,0.0);
+          for (int id : cluster) { 
+            pos += m_detector->GetLocalPosition(id); 
             err += m_detector->GetGlobalPositionError(id);
           }
           if (cluster.size()) { 

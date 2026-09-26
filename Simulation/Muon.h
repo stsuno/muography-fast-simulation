@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <random>
 #include <iomanip>
+#include <iostream>
 
 #include <TPolyLine3D.h>
 #include <TPolyMarker3D.h>
@@ -24,6 +25,7 @@ class Muon : public TPolyLine3D {
   public:
     static constexpr double kMuonMass = 105.6583755; // Muon mass in MeV/c^2
 
+    Muon() { };
     // Muon(ReadExpacs* reader, UInt_t random_seed = std::random_device{}());
     Muon(ReadExpacs* reader, UInt_t random_seed = 1);
     Muon(const Muon& other);
@@ -64,6 +66,8 @@ class Muon : public TPolyLine3D {
     void SetMarkerColor(Color_t color);
 
     void SetEnergy(double energy) { m_energy_muon = energy; }
+    void SetStartPoint(TVector3 p) { m_start_x=p.X(); m_start_y=p.Y(); m_start_z=p.Z(); }
+    void SetEndPoint(TVector3 p)   { m_end_x  =p.X(); m_end_y  =p.Y(); m_end_z  =p.Z(); }
 
     // Stopping power and density-effect correction, exposed as statics so that
     // other transport code (Simulation/MuonTransport.h) uses the same physics
@@ -226,6 +230,7 @@ inline bool Muon::Generate() {
   double delta_z = TMath::Abs(m_reference_z - m_second_reference_z);
   double theta_min = 0.0;
   double theta_max = 90.0;
+
   if (m_boundary_radius>0.0) {
     double r_max = m_boundary_radius-TMath::Sqrt(m_reference_x*m_reference_x+m_reference_y*m_reference_y);
     if (m_boundary_radsign>0) {
@@ -241,7 +246,9 @@ inline bool Muon::Generate() {
     // The 2nd. boundary constraint is active only when the two reference planes
     // are separated in z (checking |m_second_reference_z| would break as soon as
     // the geometry places the 2nd. reference plane at z = 0).
-    if (delta_z > s_epsilon) {
+  
+//    if (delta_z > s_epsilon) {
+    if (TMath::Abs(m_second_reference_z)>s_epsilon) {
       // Check if reference point is inside or outside 2nd. boundary
       bool is_inside = (m_reference_x >= m_boundary2_xmin && m_reference_x <= m_boundary2_xmax &&
           m_reference_y >= m_boundary2_ymin && m_reference_y <= m_boundary2_ymax);
@@ -252,7 +259,7 @@ inline bool Muon::Generate() {
       double dz_dir = m_second_reference_z - m_reference_z;
       double ray_cos = (dz_dir >= 0.0) ? cos_phi : -cos_phi;
       double ray_sin = (dz_dir >= 0.0) ? sin_phi : -sin_phi;
-
+    
       // Case1: Reference point is INSIDE
       if (is_inside) {
         // Find nearest boundary in current phi direction
@@ -276,13 +283,21 @@ inline bool Muon::Generate() {
         double x_wall[2] = {m_boundary2_xmin, m_boundary2_xmax};
         double y_wall[2] = {m_boundary2_ymin, m_boundary2_ymax};
 
+//        std::cout << "OK1 " << dz_dir << " " << ray_cos << " " << ray_sin << std::endl;
+
         // Check intersection with X-boundaries (vertical edges)
         for (double x : x_wall) {
           if (TMath::Abs(ray_cos) > s_epsilon) {
             double radius = (x - m_reference_x) / ray_cos;
+
+//            std::cout << "OK2 " << x << " " << m_reference_x << " " << radius << std::endl;
+
             if (radius > s_epsilon) {
               // Check if intersection point is with in Y-range of detector
               double intersection_y = m_reference_y + radius * ray_sin;
+
+//              std::cout << "OK3 " << intersection_y << " " << m_boundary2_ymin << " " << m_boundary2_ymax << std::endl;
+
               if (intersection_y>=m_boundary2_ymin && intersection_y<=m_boundary2_ymax) {
                 valid_radius.push_back(radius);
               }
@@ -302,6 +317,10 @@ inline bool Muon::Generate() {
             }
           }
         }
+
+//        std::cout << "OK4 " << valid_radius.empty() << std::endl;
+
+
         // If no walls are intersected, direction is outside field of view
         if (valid_radius.empty()) {
           if (g_debug_level>0) { Info("Muon::Generate", "Valid radius is empty"); }
@@ -315,6 +334,8 @@ inline bool Muon::Generate() {
       }
     }
   }
+
+//  std::cout << "OK3 " << std::endl;
 
   // 4. Acceptance-Rejection sampling to eliminate geometric bias
   const std::vector<double>& angles = m_reader->GetSamplingAngles();
@@ -353,6 +374,7 @@ inline bool Muon::Generate() {
       break;
     }
   }
+
   if (theta_index == -1) {
     // Floating-point round-off can leave the CDF sum slightly below 1.
     // Fall back to the last bin with nonzero visible flux so that the sampled
@@ -428,6 +450,7 @@ inline bool Muon::Generate() {
 }
 
 inline std::pair<double, double> Muon::CalculateEnergyLoss(const std::vector<Shape*>& shapes) {
+
   double energy_loss = 0.0;
   if (shapes.empty()) {
     if (g_debug_level>0) { Info("Muon::CalculateEnergyLoss", "No shape"); }
@@ -468,7 +491,7 @@ inline std::pair<double, double> Muon::CalculateEnergyLoss(const std::vector<Sha
       unique_points.push_back(points[i]);
     }
   }
-
+  
   for (size_t i = 0; i < unique_points.size() - 1; ++i) {
     TVector3 segment_middle = (unique_points[i] + unique_points[i+1]) * 0.5;
     int highest_priority = Shape::s_invalid_priority;
@@ -502,6 +525,7 @@ inline std::pair<double, double> Muon::CalculateEnergyLoss(const std::vector<Sha
       Info("Muon::CalculateEnergyLoss", "selected_z_over_a: %.5f", selected_z_over_a);
       Info("Muon::CalculateEnergyLoss", "selected_mean_excitation energy: %.10f", selected_mean_excitation_energy);
     }
+
     if (found_material && selected_density > s_epsilon) {
       double current_muon_energy = m_energy_muon - energy_loss;
       if (current_muon_energy <= kMuonMass + s_epsilon) break;
@@ -614,7 +638,8 @@ inline double Muon::CalculateSegmentEnergyLoss(double density, double z_over_a, 
   double current_energy = muon_energy;    // [MeV]
   double initial_energy = current_energy; // [MeV]
 
-  double maximum_step = 1.0;  // [cm]
+//  double maximum_step = 1.0;  // [cm]
+  double maximum_step = 0.1;  // [cm]
   double remaining_path = path_length;  // [cm]
 
   while (remaining_path > s_epsilon) {

@@ -17,6 +17,7 @@ R__ADD_INCLUDE_PATH(.);
 #include <TSystem.h>
 
 #include "Simulation/SciBar100x100.h"
+#include "Simulation/SciFiberBar450.h"
 
 #include "Reconstruction/ClusterMaker.h"
 #include "Reconstruction/LineFitter.h"
@@ -34,16 +35,15 @@ int ReconstructionKomen(std::string model="ALL") {
   // Apply Log Level Setting
   gErrorIgnoreLevel = g_log_level;
 
-  std::string output_dir = "data/output/komen_g00pm20p";
-//  std::string output_dir = "data/output/komen_g00pm500p";
 //  std::string output_dir = "data/output/komen_nominal";
+
+  std::string output_dir = "data/output/komen_g01pm00p";
 
   std::string pdffile      = "komen.pdf";
 
   TVector3 detA_position(0.0,0.0,0.0);
-  TVector3 detB_position(2000.0,0.0,0.0);
-  TVector3 detC_position(1000.0,0.0,200.0);
-  TVector3 MWPC_position(2000.0,0.0,2400.0);
+  TVector3 detB_position(6000.0,0.0,0.0);
+  TVector3 detC_position(3000.0,0.0,200.0);
 
   // 2. Setup Output
 //  std::string output_path = output_dir + "/" + rootfile;
@@ -192,6 +192,17 @@ int ReconstructionKomen(std::string model="ALL") {
     cluster_maker.SetClusterModel(ClusterMaker<SciBar100x100*>::Global);
   }
 
+
+  SciFiberBar450* fiberdet = new SciFiberBar450(0.0,0.0,0.0);
+  fiberdet -> SetLineColor(3);
+  fiberdet -> SetFillColor(3);
+  fiberdet -> SetDensity(0.0);
+
+  ClusterMaker<SciFiberBar450*> fiberclus_maker(fiberdet);
+  fiberclus_maker.SetClusterModel(ClusterMaker<SciFiberBar450*>::Local);
+
+
+
   SciBar100x100* detector2 = new SciBar100x100(0.0,0.0,0.0);
   TVector3 detector2_position;
   ClusterMaker<SciBar100x100*> cluster_maker2;
@@ -213,15 +224,14 @@ int ReconstructionKomen(std::string model="ALL") {
     track_finder.SetTotalLayer(16);
     track_finder.SetMinimumHits(8);
   }
+//  if (model=="SingleB" || model=="DoubleM1B_B" || model=="DoubleM2B_B" 
+//      || model=="DoubleM3B_B" || model=="DoubleM4B_B" || model=="DoubleM5B_B") {
+//    track_finder.SetTotalLayer(3);
+//    track_finder.SetChisqCut(1000000.0);
+//    track_finder.SetMinimumHits(3);
+//  }
 
-//  TrackFinder track_finder(16, 1000000.0);
-//  track_finder.SetMinimumHits(8);
 
-//  TrackFinder track_finder(8, 1000000.0);
-//  track_finder.SetMinimumHits(6);
-
-//  TrackFinder track_finder(4, 1000000.0);
-//  track_finder.SetMinimumHits(4);
 
 //  std::map<std::string, double> start_values;
 //  start_values["A"] = 0.0;
@@ -265,7 +275,16 @@ int ReconstructionKomen(std::string model="ALL") {
     while (data >> hit_id) { hit_ids.push_back(hit_id); } 
 
     // Step A: Clustering (Raw hits -> SpacePoints)
-    std::vector<SpacePoint> all_space_points = cluster_maker.Execute(hit_ids);
+    std::vector<SpacePoint> all_space_points;
+//    if (model=="SingleB" || model=="DoubleM1B_B" || model=="DoubleM2B_B" || model=="DoubleM3B_B"
+//     || model=="DoubleM4B_B" || model=="DoubleM5B_B") {
+//      all_space_points = fiberclus_maker.Execute(hit_ids);
+//    }
+//    else {
+//      all_space_points = cluster_maker.Execute(hit_ids);
+//    }
+    all_space_points = cluster_maker.Execute(hit_ids);
+
     if (g_debug_level>0) {
      Info("Reconstruction", "Event %d: SpacePoints = %lu", i_events, all_space_points.size());
     }

@@ -23,7 +23,7 @@ inline TriangularPrism::TriangularPrism(double cx, double cy, double cz,
 
   SetFace({          //             5    x: width  *                          *
       {0, 1, 2},     // bottom     /|\   y: depth  * right-angled / isoscales *
-      {3, 4, 4},     // top       3---4  z: height *                          *
+      {3, 4, 5},     // top       3---4  z: height *                          *
       {0, 1, 4, 3},  // front     | | |    z  y    *   y      2         2     *
       {1, 2, 5, 4},  // right     |(2)|    | /     *   |      |\       / \    *
       {2, 0, 3, 5},  // left      |/ \|    |/      *   |      | \     /   \   *
